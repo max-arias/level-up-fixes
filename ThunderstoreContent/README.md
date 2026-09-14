@@ -11,6 +11,10 @@ LevelUpChoicesFixes adds compatibility fixes and configurable quality support to
 
 Install this package with a Thunderstore-compatible mod manager. Item Qualities is required only for the quality features. Risk of Options is required only for the in-game settings screen.
 
+## Opening the choice menu
+
+When the notification shows that you have unused tokens, click the notification panel to open the item choices. The existing toggle-menu key remains available as an alternative.
+
 ## Quality features
 
 When Item Qualities is installed, quality variants appear directly in LevelUpChoices item choices.

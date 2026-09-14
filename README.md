@@ -11,6 +11,11 @@
 
 Install the package with a Thunderstore-compatible mod manager. R2API Networking is installed as a dependency. Item Qualities is only needed for the quality features.
 
+## Opening the choice menu
+
+When the notification shows that you have unused tokens, click the notification panel to open the item choices. The existing toggle-menu key remains available as an alternative.
+
+
 ## Quality integration
 
 With Item Qualities installed, LevelUpChoices can offer quality variants directly in its normal item choices.
