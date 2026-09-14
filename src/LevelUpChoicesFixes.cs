@@ -186,10 +186,36 @@ internal static class IntegrationPatches
             Log.Warning("Interactable source seam is unsupported; per-category controls disabled.");
 
         MethodInfo populate = AccessTools.Method(typeof(SceneDirector), "PopulateScene");
-        if (populate != null && InteractableCreditField != null)
-            harmony.Patch(populate, prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(InteractableCreditPrefix)));
+        if (populate != null)
+        {
+            harmony.Patch(populate, prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(InteractableCategoriesPrefix)));
+            if (InteractableCreditField != null)
+                harmony.Patch(populate, prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(InteractableCreditPrefix)));
+        }
         else if (Math.Abs(ConfigState.InteractableCreditMultiplier.Value - 1f) > 0.001f)
             Log.Warning("SceneDirector credit seam is unsupported; credit scaling disabled.");
+    }
+
+    private static void InteractableCategoriesPrefix()
+    {
+        if (!LevelUpChoices.ModConfig.IsModEnabled || !LevelUpChoices.ModConfig.EnableInteractableRemoval.Value ||
+            !ClassicStageInfo.instance?.interactableCategories)
+            return;
+
+        DirectorCardCategorySelection selection = ClassicStageInfo.instance.interactableCategories;
+        for (int i = 0; i < selection.categories.Length; i++)
+        {
+            DirectorCardCategorySelection.Category category = selection.categories[i];
+            DirectorCard[] filteredCards = category.cards.Where(card =>
+                card.spawnCard != null && !ItemSourceGroups.IsBlocked(card.spawnCard.name)).ToArray();
+            if (filteredCards.Length == category.cards.Length)
+                continue;
+
+            if (filteredCards.Length == 0)
+                category.selectionWeight = 0f;
+            category.cards = filteredCards;
+            selection.categories[i] = category;
+        }
     }
 
     private static void PatchExperience(Harmony harmony)
@@ -590,13 +616,42 @@ internal static class IntegrationPatches
 
 internal static class ItemSourceGroups
 {
-    private static readonly string[] Chests = { "isccasinochest", "isccategorychestdamage", "isccategorychesthealing", "isccategorychestutility", "iscchest1", "iscchest1stealthed", "iscchest2", "iscgoldchest", "isclunarchest" };
+    private static readonly string[] Chests = { "isccasinochest", "isccategorychestdamage", "isccategorychesthealing", "isccategorychestutility", "iscchest1", "iscchest1stealthed", "iscchest2", "iscgoldchest", "isclunarchest", "isccategorychest2damage", "isccategorychest2healing", "isccategorychest2utility" };
     internal static readonly string[] QualityChests = { "iscQualityChest1", "iscQualityChest2" };
     internal static readonly string[] QualityPrinters = { "iscQualityDuplicator", "iscQualityDuplicatorLarge", "iscQualityDuplicatorMilitary", "iscQualityDuplicatorWild" };
     private static readonly string[] Printers = { "iscduplicator", "iscduplicatorlarge", "iscduplicatormilitary", "iscduplicatorwild" };
     private static readonly string[] Shrines = { "iscshrineblood", "iscshrinebloodsandy", "iscshrinebloodsnowy", "iscshrinechance", "iscshrinechancesandy", "iscshrinechancesnowy", "iscshrinecleanse", "iscshrinecleansesandy", "iscshrinecleansesnowy", "iscshrinecombat", "iscshrinecombatsandy", "iscshrinecombatsnowy", "iscshrinerestack", "iscshrinerestacksandy", "iscshrinerestacksnowy" };
     private static readonly string[] Shops = { "isctripleshop", "isctripleshoplarge" };
     private static readonly string[] Scrappers = { "iscscrapper" };
+
+    internal static bool IsBlocked(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return false;
+        if (ConfigState.PreserveChests.Value && Contains(Chests, name) ||
+            ConfigState.PreservePrinters.Value && Contains(Printers, name) ||
+            ConfigState.PreserveShrines.Value && Contains(Shrines, name) ||
+            ConfigState.PreserveShops.Value && Contains(Shops, name) ||
+            ConfigState.PreserveScrappers.Value && Contains(Scrappers, name))
+            return false;
+        if (ConfigState.PreserveCleansePools.Value && Contains(Shrines, name) &&
+            name.StartsWith("iscshrinecleanse", StringComparison.OrdinalIgnoreCase))
+            return false;
+        return Contains(Chests, name) || Contains(Printers, name) || Contains(Shrines, name) ||
+            Contains(Shops, name) || Contains(Scrappers, name) ||
+            QualityRuntime.IsPluginPresent && !ConfigState.AllowQualityChestsValue &&
+            (Contains(QualityChests, name) || Contains(QualityPrinters, name));
+    }
+
+    private static bool Contains(string[] names, string name)
+    {
+        foreach (string candidate in names)
+        {
+            if (string.Equals(candidate, name, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
+    }
 
     internal static IEnumerable<string> GetNamesToPreserve()
     {
