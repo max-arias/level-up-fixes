@@ -1,0 +1,20 @@
+# Build output
+/iq/
+/luc/
+src/bin/
+src/obj/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# IDE and local tooling
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Local logs and temporary files
+*.log
+.DS_Store
