@@ -34,6 +34,8 @@ internal static class ConfigState
     internal static ConfigEntry<float> RareQualityWeight { get; private set; }
     internal static ConfigEntry<float> EpicQualityWeight { get; private set; }
     internal static ConfigEntry<float> LegendaryQualityWeight { get; private set; }
+    internal static ConfigEntry<int> GuaranteedQualityEveryNLevels { get; private set; }
+    internal static ConfigEntry<int> GuaranteedQualityChoiceCount { get; private set; }
     internal static ConfigEntry<string> ItemBlacklist { get; private set; }
     internal static ConfigEntry<RerollRefreshMode> RerollRefreshOnLevel { get; private set; }
     internal static ConfigEntry<int> RerollRefreshEveryNLevels { get; private set; }
@@ -59,6 +61,8 @@ internal static class ConfigState
         Math.Max(0f, Value(EpicQualityWeight)),
         Math.Max(0f, Value(LegendaryQualityWeight))
     };
+    internal static int GuaranteedQualityEveryValue => Math.Max(0, Value(GuaranteedQualityEveryNLevels));
+    internal static int GuaranteedQualityChoicesValue => Math.Max(1, Value(GuaranteedQualityChoiceCount));
     internal static string ItemBlacklistValue => _hasServerOverride ? _serverBlacklist : ItemBlacklist.Value;
     internal static RerollRefreshMode RerollRefreshModeValue => Value(RerollRefreshOnLevel);
     internal static int RerollRefreshEveryValue => Math.Max(1, Value(RerollRefreshEveryNLevels));
@@ -81,6 +85,14 @@ internal static class ConfigState
             "Relative weight for Epic quality variants.");
         LegendaryQualityWeight = config.Bind(ServerSection, "Legendary Quality Weight", 2f,
             "Relative weight for Legendary quality variants.");
+        GuaranteedQualityEveryNLevels = config.Bind(ServerSection, "Guaranteed Quality Every N Levels", 5,
+            new ConfigDescription(
+                "Queue one guaranteed-quality choice set at this level interval. Set to 0 to disable.",
+                new AcceptableValueRange<int>(0, 100)));
+        GuaranteedQualityChoiceCount = config.Bind(ServerSection, "Guaranteed Quality Choice Count", 3,
+            new ConfigDescription(
+                "Number of quality choices in each guaranteed-quality set. Capped by the upstream choice count.",
+                new AcceptableValueRange<int>(1, 10)));
         ItemBlacklist = config.Bind(ServerSection, "Item Blacklist", "DefensiveMicrobots",
             "Comma-separated item names that are removed from every LevelUpChoices player pool.");
         RerollRefreshOnLevel = config.Bind(ServerSection, "Reroll Refresh On Level", RerollRefreshMode.Off,
@@ -135,6 +147,8 @@ internal static class ConfigState
         RareQualityWeight.SettingChanged += OnServerSettingChanged;
         EpicQualityWeight.SettingChanged += OnServerSettingChanged;
         LegendaryQualityWeight.SettingChanged += OnServerSettingChanged;
+        GuaranteedQualityEveryNLevels.SettingChanged += OnServerSettingChanged;
+        GuaranteedQualityChoiceCount.SettingChanged += OnServerSettingChanged;
         ItemBlacklist.SettingChanged += OnServerSettingChanged;
         RerollRefreshOnLevel.SettingChanged += OnServerSettingChanged;
         RerollRefreshEveryNLevels.SettingChanged += OnServerSettingChanged;
@@ -160,6 +174,8 @@ internal static class ConfigState
         RareQualityWeight.SettingChanged -= OnServerSettingChanged;
         EpicQualityWeight.SettingChanged -= OnServerSettingChanged;
         LegendaryQualityWeight.SettingChanged -= OnServerSettingChanged;
+        GuaranteedQualityEveryNLevels.SettingChanged -= OnServerSettingChanged;
+        GuaranteedQualityChoiceCount.SettingChanged -= OnServerSettingChanged;
         ItemBlacklist.SettingChanged -= OnServerSettingChanged;
         RerollRefreshOnLevel.SettingChanged -= OnServerSettingChanged;
         RerollRefreshEveryNLevels.SettingChanged -= OnServerSettingChanged;
@@ -217,6 +233,8 @@ internal static class ConfigState
         private float _rare;
         private float _epic;
         private float _legendary;
+        private int _guaranteedQualityEvery;
+        private int _guaranteedQualityChoices;
         private string _blacklist;
         private int _rerollMode;
         private int _rerollEvery;
@@ -243,6 +261,8 @@ internal static class ConfigState
             _rare = RareQualityWeight.Value;
             _epic = EpicQualityWeight.Value;
             _legendary = LegendaryQualityWeight.Value;
+            _guaranteedQualityEvery = GuaranteedQualityEveryNLevels.Value;
+            _guaranteedQualityChoices = GuaranteedQualityChoiceCount.Value;
             _blacklist = ItemBlacklist.Value ?? string.Empty;
             _rerollMode = (int)RerollRefreshOnLevel.Value;
             _rerollEvery = RerollRefreshEveryNLevels.Value;
@@ -268,6 +288,8 @@ internal static class ConfigState
             writer.Write(_rare);
             writer.Write(_epic);
             writer.Write(_legendary);
+            writer.Write(_guaranteedQualityEvery);
+            writer.Write(_guaranteedQualityChoices);
             writer.Write(_blacklist ?? string.Empty);
             writer.Write(_rerollMode);
             writer.Write(_rerollEvery);
@@ -293,6 +315,8 @@ internal static class ConfigState
             _rare = reader.ReadSingle();
             _epic = reader.ReadSingle();
             _legendary = reader.ReadSingle();
+            _guaranteedQualityEvery = reader.ReadInt32();
+            _guaranteedQualityChoices = reader.ReadInt32();
             _blacklist = reader.ReadString();
             _rerollMode = reader.ReadInt32();
             _rerollEvery = reader.ReadInt32();
@@ -330,6 +354,8 @@ internal static class ConfigState
                 "Rare Quality Weight" => _overrides._rare,
                 "Epic Quality Weight" => _overrides._epic,
                 "Legendary Quality Weight" => _overrides._legendary,
+                "Guaranteed Quality Every N Levels" => _overrides._guaranteedQualityEvery,
+                "Guaranteed Quality Choice Count" => _overrides._guaranteedQualityChoices,
                 "Reroll Refresh On Level" => (RerollRefreshMode)_overrides._rerollMode,
                 "Reroll Refresh Every N Levels" => _overrides._rerollEvery,
                 "Item Choices Every N Levels" => _overrides._choicesEvery,

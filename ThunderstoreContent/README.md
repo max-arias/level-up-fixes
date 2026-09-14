@@ -28,6 +28,8 @@ Weights are relative and normalized over variants that actually exist for the se
 Base identity is retained for similarity, rerolls, exclusions, and banishes. The final quality `ItemIndex` remains in LevelUpChoices' existing option list, so its normal pickup, grant, and `SyncItems` paths are used.
 When Item Qualities is installed, its `iscQualityChest1`, `iscQualityChest2`, `iscQualityDuplicator`, `iscQualityDuplicatorLarge`, `iscQualityDuplicatorMilitary`, and `iscQualityDuplicatorWild` cards are treated as item sources by the upstream removal hook. `Allow Quality Chests` defaults to `false`, so quality chests and quality printers are removed with the other item-giving interactables. Set it to `true` only if those variants should remain.
 
+By default, every 5th level queues a guaranteed-quality choice set. The next generated set contains 3 quality choices; their base item rarity is still rolled from the current LevelUpChoices token progression, and their quality tier is sampled from the configured quality weights. A queued milestone waits if an earlier choice set remains unspent.
+
 ## Risk of Options
 
 Risk of Options is an optional integration. When installed, the supported live-safe settings appear in its Mod Options screen under Quality, Schedule, and Interactables. Native BepInEx configuration remains available when Risk of Options is absent. In multiplayer, host/server settings are disabled for clients and host changes synchronize to connected clients during a run.
@@ -36,7 +38,7 @@ Risk of Options is an optional integration. When installed, the supported live-s
 
 All settings are BepInEx server settings in the `Server` section. The item blacklist is a comma-separated list of `ItemDef.name` values and defaults to `DefensiveMicrobots`. Reroll refresh can be disabled, reset to the upstream starting count, or increment by one at a configured interval. `Item Choices Every N Levels` preserves unspent choices and grants new choices only at the selected interval.
 
-`Allow Quality Chests` defaults to `false` and only allows Item Qualities chest and printer variants when both Item Qualities is present and the upstream `Remove Chests & Interactables` behavior is active.
+Quality compensation defaults to `Guaranteed Quality Every N Levels = 5` and `Guaranteed Quality Choice Count = 3`. Set the interval to `0` to disable guaranteed quality sets. The choice count is capped by the upstream LevelUpChoices option count. The normal Quality Chance remains `4%`; guaranteed sets bypass that roll but retain random quality-tier selection. Base item rarity remains controlled by the normal LevelUpChoices token-weight curve, so higher base rarities become more likely as `UsedTokens` increases.
 
 ## Installation
 

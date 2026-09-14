@@ -9,10 +9,10 @@ def effective_chance(chance, luck):
     return 100.0 * (1.0 - (1.0 - chance / 100.0) ** rolls)
 
 
-def promote(base, chance, weights, variants, sample_chance, sample_tier, luck=0):
+def promote(base, chance, weights, variants, sample_chance, sample_tier, luck=0, guaranteed=False):
     if not variants:
         return base
-    if sample_chance >= effective_chance(chance, luck) / 100.0:
+    if not guaranteed and sample_chance >= effective_chance(chance, luck) / 100.0:
         return base
     eligible = [(tier, weight) for tier, weight in enumerate(weights)
                 if weight > 0 and variants.get(tier, base) != base]
@@ -25,6 +25,10 @@ def promote(base, chance, weights, variants, sample_chance, sample_tier, luck=0)
         if cursor < 0:
             return variants[tier]
     return variants[eligible[-1][0]]
+
+
+def quality_batch_due(level, interval):
+    return interval > 0 and level > 0 and level % interval == 0
 
 
 def reroll(options, slot, replacement):
@@ -52,6 +56,17 @@ class QualityBehavior(unittest.TestCase):
         zero_probability = (1.0 - 0.04) ** 300
         self.assertAlmostEqual(expected_promotions, 12.0)
         self.assertLess(zero_probability, 0.00001)
+    def test_guaranteed_quality_bypasses_random_chance(self):
+        self.assertEqual(
+            promote("base", 0, [70, 20, 8, 2], {0: "u"}, 1, 0, guaranteed=True),
+            "u")
+
+    def test_guaranteed_quality_batch_uses_level_threshold(self):
+        self.assertEqual(
+            [level for level in range(1, 21) if quality_batch_due(level, 5)],
+            [5, 10, 15, 20])
+        self.assertFalse(quality_batch_due(0, 5))
+        self.assertFalse(quality_batch_due(5, 0))
 
     def test_default_relative_distribution(self):
         weights = [70, 20, 8, 2]

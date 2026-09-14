@@ -14,3 +14,5 @@
 - Added `Allow Quality Chests`, defaulting to `false`, so Item Qualities chest cards follow LevelUpChoices interactable removal.
 - Embedded the package icon in the plugin and registered it with Risk of Options.
 - Extended the default Quality interactable suppression to Item Qualities chest and printer variants.
+- Added configurable guaranteed-quality choice sets, defaulting to three quality choices every five levels.
+- Guaranteed sets retain the normal LevelUpChoices base-item rarity progression while bypassing only the random quality chance; quality tier selection remains weighted and random.

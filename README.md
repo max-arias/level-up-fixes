@@ -47,3 +47,9 @@ python3 build/quality_chance_chart.py
 ```
 
 The SVG output is written to [`build/quality-chance-chart.svg`](build/quality-chance-chart.svg). Dashed lines show the expected 4% quality promotion and its `70 / 20 / 8 / 2` tier split.
+
+## Guaranteed quality choice sets
+
+When Item Qualities is installed, the add-on can replace periodic level-up choice sets with guaranteed quality choices. The default is one set every `5` levels with `3` quality choices. The normal LevelUpChoices drop table still selects each base item, so white/green/red probabilities continue to rise with `UsedTokens`; only the quality promotion chance is bypassed for the guaranteed set. Each resulting quality variant still uses the configured `70 / 20 / 8 / 2` quality-tier weights.
+
+Set `Guaranteed Quality Every N Levels` to `0` to disable the milestone sets, or change `Guaranteed Quality Choice Count` to control how many choices in each set are forced to quality. If a previous choice set is still unspent, the milestone is queued until the next set is generated. Both settings are server-authoritative and appear in Risk Of Options when installed.

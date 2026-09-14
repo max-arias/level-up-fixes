@@ -81,6 +81,16 @@ internal static class QualityRuntime
 
     internal static ItemIndex Promote(ItemIndex baseItem, float luck)
     {
+        return Promote(baseItem, luck, false);
+    }
+
+    internal static ItemIndex PromoteGuaranteed(ItemIndex baseItem, float luck)
+    {
+        return Promote(baseItem, luck, true);
+    }
+
+    private static ItemIndex Promote(ItemIndex baseItem, float luck, bool guaranteed)
+    {
         if (!ConfigState.QualityEnabled || !NetworkServer.active)
             return baseItem;
         TryInitialize();
@@ -95,7 +105,7 @@ internal static class QualityRuntime
         try
         {
             float chance = QualityRollPolicy.EffectiveChance(ConfigState.QualityChanceValue, luck);
-            if (!QualityRollPolicy.ShouldPromote(chance, UnityEngine.Random.value))
+            if (!guaranteed && !QualityRollPolicy.ShouldPromote(chance, UnityEngine.Random.value))
                 return baseItem;
 
             float[] configuredWeights = ConfigState.QualityWeights;

@@ -68,6 +68,7 @@ internal static class IntegrationPatches
 {
     private static readonly FieldInfo PlayerStatesField = AccessTools.Field(typeof(LevelUpChoices.LevelUpManager), "playerStates");
     private static readonly FieldInfo CurrentOptionsField = AccessTools.Field(typeof(LevelUpChoices.LevelUpManager.PlayerState), "CurrentOptions");
+    private static readonly FieldInfo CurrentSynergiesField = AccessTools.Field(typeof(LevelUpChoices.LevelUpManager.PlayerState), "CurrentSynergies");
     private static readonly FieldInfo SelectionTokensField = AccessTools.Field(typeof(LevelUpChoices.LevelUpManager.PlayerState), "SelectionTokens");
     private static readonly FieldInfo RerollTokensField = AccessTools.Field(typeof(LevelUpChoices.LevelUpManager.PlayerState), "RerollTokens");
     private static readonly FieldInfo DropTableTiersField = AccessTools.Field(typeof(LevelUpChoices.PlayerDropTable), "_tiers");
@@ -79,10 +80,11 @@ internal static class IntegrationPatches
 
     private static readonly Dictionary<NetworkInstanceId, int> BeforeSelectionTokens = new();
     private static readonly Dictionary<NetworkInstanceId, int> BeforeOptionCounts = new();
+    private static readonly Dictionary<NetworkInstanceId, int> PendingGuaranteedQualityBatches = new();
     private static readonly HashSet<string> PreservedSpawnNames = new(StringComparer.OrdinalIgnoreCase);
     private static ItemIndex _rerollBaseItem = ItemIndex.None;
     private static ItemIndex _rerollOriginalItem = ItemIndex.None;
-
+    private static Run _pendingQualityRun;
     internal static void Install(Harmony harmony)
     {
         PatchInitialize(harmony);
@@ -118,6 +120,12 @@ internal static class IntegrationPatches
         harmony.Patch(method,
             prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(RollSingleSlotPrefix)),
             postfix: new HarmonyMethod(typeof(IntegrationPatches), nameof(RollSingleSlotPostfix)));
+
+        MethodInfo rollItems = AccessTools.Method(typeof(LevelUpChoices.LevelUpManager), "RollItemsForPlayer");
+        if (HasParameters(rollItems, typeof(NetworkInstanceId)))
+            harmony.Patch(rollItems, postfix: new HarmonyMethod(typeof(IntegrationPatches), nameof(RollItemsForPlayerPostfix)));
+        else
+            Log.Warning("LevelUpManager.RollItemsForPlayer seam is unsupported; guaranteed quality choices disabled.");
     }
 
     private static void PatchRerollAndBanish(Harmony harmony)
@@ -239,13 +247,53 @@ internal static class IntegrationPatches
             exclude.Add(_rerollBaseItem);
     }
 
-    private static void RollSingleSlotPostfix(NetworkInstanceId netId, ref ValueTuple<ItemIndex, ItemIndex> __result)
+    private static void RollSingleSlotPostfix(
+        NetworkInstanceId netId,
+        ref ValueTuple<ItemIndex, ItemIndex> __result)
     {
         ItemIndex baseItem = QualityRuntime.ToBase(__result.Item1);
         if (baseItem == ItemIndex.None && _rerollOriginalItem != ItemIndex.None)
             __result = new ValueTuple<ItemIndex, ItemIndex>(_rerollOriginalItem, ItemIndex.None);
         else if (baseItem != ItemIndex.None && ConfigState.QualityEnabled && NetworkServer.active)
-            __result = new ValueTuple<ItemIndex, ItemIndex>(QualityRuntime.Promote(baseItem, GetPlayerLuck(netId)), __result.Item2);
+            __result = new ValueTuple<ItemIndex, ItemIndex>(
+                QualityRuntime.Promote(baseItem, GetPlayerLuck(netId)),
+                __result.Item2);
+    }
+
+    private static void RollItemsForPlayerPostfix(LevelUpChoices.LevelUpManager __instance, NetworkInstanceId netId)
+    {
+        if (!ConfigState.QualityEnabled || ConfigState.GuaranteedQualityEveryValue <= 0)
+        {
+            PendingGuaranteedQualityBatches.Remove(netId);
+            return;
+        }
+        if (!PendingGuaranteedQualityBatches.TryGetValue(netId, out int pendingBatches) || pendingBatches <= 0)
+            return;
+        object state = GetPlayerState(__instance, netId);
+        if (state == null || CurrentOptionsField?.GetValue(state) is not IList options || options.Count == 0)
+            return;
+
+        int configuredCount = ConfigState.GuaranteedQualityChoicesValue;
+        int guaranteedCount = Math.Min(configuredCount, options.Count);
+        float luck = GetPlayerLuck(netId);
+        for (int i = 0; i < guaranteedCount; i++)
+        {
+            if (options[i] is not ItemIndex item)
+                continue;
+            ItemIndex baseItem = QualityRuntime.ToBase(item);
+            options[i] = QualityRuntime.PromoteGuaranteed(baseItem, luck);
+        }
+
+        if (guaranteedCount < configuredCount)
+            Log.Warning($"Guaranteed quality choice count {configuredCount} was capped at {guaranteedCount} by the upstream option count.");
+
+        if (pendingBatches == 1)
+            PendingGuaranteedQualityBatches.Remove(netId);
+        else
+            PendingGuaranteedQualityBatches[netId] = pendingBatches - 1;
+
+        SyncOptions(__instance, netId);
+        UpdateLocalOptions(__instance, netId, options, state);
     }
 
     private static void RerollPrefix(LevelUpChoices.LevelUpManager __instance, NetworkInstanceId netId, int slotIndex)
@@ -268,8 +316,9 @@ internal static class IntegrationPatches
 
     private static void RemovePrefix(ref ItemIndex item) => item = QualityRuntime.ToBase(item);
 
-    private static void OnLevelUpPrefix(LevelUpChoices.LevelUpManager __instance)
+    private static void OnLevelUpPrefix(LevelUpChoices.LevelUpManager __instance, uint newLevel)
     {
+        QueueGuaranteedQualityBatch(newLevel);
         BeforeSelectionTokens.Clear();
         BeforeOptionCounts.Clear();
         foreach (DictionaryEntry entry in EnumerateStates(__instance))
@@ -278,6 +327,30 @@ internal static class IntegrationPatches
             object state = entry.Value;
             BeforeSelectionTokens[id] = (int)SelectionTokensField.GetValue(state);
             BeforeOptionCounts[id] = ((IList)CurrentOptionsField.GetValue(state)).Count;
+        }
+    }
+
+    private static void QueueGuaranteedQualityBatch(uint newLevel)
+    {
+        if (!NetworkServer.active)
+            return;
+        if (_pendingQualityRun != Run.instance)
+        {
+            PendingGuaranteedQualityBatches.Clear();
+            _pendingQualityRun = Run.instance;
+        }
+
+        int interval = ConfigState.GuaranteedQualityEveryValue;
+        if (!ConfigState.QualityEnabled || interval <= 0 || newLevel == 0 || newLevel % (uint)interval != 0)
+            return;
+
+        foreach (PlayerCharacterMasterController player in PlayerCharacterMasterController.instances)
+        {
+            if (!player.networkUser)
+                continue;
+            NetworkInstanceId id = player.networkUser.netId;
+            PendingGuaranteedQualityBatches[id] =
+                PendingGuaranteedQualityBatches.TryGetValue(id, out int pending) ? pending + 1 : 1;
         }
     }
 
@@ -450,6 +523,26 @@ internal static class IntegrationPatches
         if (PlayerStatesField?.GetValue(manager) is IDictionary states && states.Contains(netId))
             return states[netId];
         return null;
+    }
+
+    private static void UpdateLocalOptions(
+        LevelUpChoices.LevelUpManager manager,
+        NetworkInstanceId netId,
+        IList options,
+        object state)
+    {
+        if (!NetworkUser.readOnlyLocalPlayersList.Any(user => user.netId == netId))
+            return;
+
+        List<PickupIndex> pickups = new();
+        for (int i = 0; i < options.Count; i++)
+        {
+            if (options[i] is ItemIndex item)
+                pickups.Add(PickupCatalog.FindPickupIndex(item));
+        }
+
+        List<ItemIndex> synergies = CurrentSynergiesField?.GetValue(state) as List<ItemIndex>;
+        manager.UpdateAvailableItems(pickups, synergies);
     }
 
     private static int GetStartingRerollTokens()

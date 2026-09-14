@@ -94,6 +94,22 @@ internal static class RiskOfOptionsIntegration
             FormatString = "{0:0.#}",
             checkIfDisabled = ServerOptionDisabled
         }));
+        ModSettingsManager.AddOption(new IntSliderOption(ConfigState.GuaranteedQualityEveryNLevels, new IntSliderConfig
+        {
+            category = "Quality",
+            min = 0,
+            max = 100,
+            formatString = "Every {0} level(s); 0 = off",
+            checkIfDisabled = ServerOptionDisabled
+        }));
+        ModSettingsManager.AddOption(new IntSliderOption(ConfigState.GuaranteedQualityChoiceCount, new IntSliderConfig
+        {
+            category = "Quality",
+            min = 1,
+            max = 10,
+            formatString = "{0} guaranteed choice(s)",
+            checkIfDisabled = ServerOptionDisabled
+        }));
 
         ModSettingsManager.AddOption(new ChoiceOption(ConfigState.RerollRefreshOnLevel, new ChoiceConfig
         {
