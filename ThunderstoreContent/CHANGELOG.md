@@ -13,3 +13,4 @@
 - Added host-to-client synchronization when server settings change during a run.
 - Added `Allow Quality Chests`, defaulting to `false`, so Item Qualities chest cards follow LevelUpChoices interactable removal.
 - Embedded the package icon in the plugin and registered it with Risk of Options.
+- Extended the default Quality interactable suppression to Item Qualities chest and printer variants.

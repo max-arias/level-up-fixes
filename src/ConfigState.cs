@@ -70,7 +70,7 @@ internal static class ConfigState
         EnableQualityIntegration = config.Bind(ServerSection, "Enable Quality Integration", true,
             "Promote LevelUpChoices base items to Item Qualities variants after the original roll.");
         AllowQualityChests = config.Bind(ServerSection, "Allow Quality Chests", false,
-            "Allow Item Qualities chest variants when LevelUpChoices removes item-giving interactables.");
+            "Allow Item Qualities chest and printer variants when LevelUpChoices removes item-giving interactables.");
         QualityChance = config.Bind(ServerSection, "Quality Chance", 4f,
             "Percent chance for a level-up item to receive a quality. Host value is authoritative.");
         UncommonQualityWeight = config.Bind(ServerSection, "Uncommon Quality Weight", 70f,

@@ -26,7 +26,7 @@ The host's settings are authoritative and are synchronized to clients at run sta
 Weights are relative and normalized over variants that actually exist for the selected base item. A missing variant is never substituted with an ordinary item. The original LevelUpChoices roll still performs tier, luck, similarity, and exclusion selection first; this package promotes the resulting base item afterward. World-unique quality variants are removed from each original player drop table, so variants cannot compete as ordinary choices.
 
 Base identity is retained for similarity, rerolls, exclusions, and banishes. The final quality `ItemIndex` remains in LevelUpChoices' existing option list, so its normal pickup, grant, and `SyncItems` paths are used.
-When Item Qualities is installed, its `iscQualityChest1` and `iscQualityChest2` cards are treated as item sources by the upstream removal hook. `Allow Quality Chests` defaults to `false`, so those cards are removed with the other item-giving interactables. Set it to `true` only if those chests should remain.
+When Item Qualities is installed, its `iscQualityChest1`, `iscQualityChest2`, `iscQualityDuplicator`, `iscQualityDuplicatorLarge`, `iscQualityDuplicatorMilitary`, and `iscQualityDuplicatorWild` cards are treated as item sources by the upstream removal hook. `Allow Quality Chests` defaults to `false`, so quality chests and quality printers are removed with the other item-giving interactables. Set it to `true` only if those variants should remain.
 
 ## Risk of Options
 
@@ -36,7 +36,7 @@ Risk of Options is an optional integration. When installed, the supported live-s
 
 All settings are BepInEx server settings in the `Server` section. The item blacklist is a comma-separated list of `ItemDef.name` values and defaults to `DefensiveMicrobots`. Reroll refresh can be disabled, reset to the upstream starting count, or increment by one at a configured interval. `Item Choices Every N Levels` preserves unspent choices and grants new choices only at the selected interval.
 
-`Allow Quality Chests` defaults to `false` and only allows Item Qualities chest variants when both Item Qualities is present and the upstream `Remove Chests & Interactables` behavior is active.
+`Allow Quality Chests` defaults to `false` and only allows Item Qualities chest and printer variants when both Item Qualities is present and the upstream `Remove Chests & Interactables` behavior is active.
 
 ## Installation
 

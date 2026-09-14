@@ -355,13 +355,18 @@ internal static class IntegrationPatches
         if (QualityRuntime.IsPluginPresent)
         {
             foreach (string name in ItemSourceGroups.QualityChests)
-            {
-                if (ConfigState.AllowQualityChestsValue)
-                    blacklist.Remove(name);
-                else
-                    blacklist.Add(name);
-            }
+                SetQualityInteractableAllowed(blacklist, name);
+            foreach (string name in ItemSourceGroups.QualityPrinters)
+                SetQualityInteractableAllowed(blacklist, name);
         }
+    }
+
+    private static void SetQualityInteractableAllowed(HashSet<string> blacklist, string name)
+    {
+        if (ConfigState.AllowQualityChestsValue)
+            blacklist.Remove(name);
+        else
+            blacklist.Add(name);
     }
 
     private static void InteractablePostfix()
@@ -494,6 +499,7 @@ internal static class ItemSourceGroups
 {
     private static readonly string[] Chests = { "isccasinochest", "isccategorychestdamage", "isccategorychesthealing", "isccategorychestutility", "iscchest1", "iscchest1stealthed", "iscchest2", "iscgoldchest", "isclunarchest" };
     internal static readonly string[] QualityChests = { "iscQualityChest1", "iscQualityChest2" };
+    internal static readonly string[] QualityPrinters = { "iscQualityDuplicator", "iscQualityDuplicatorLarge", "iscQualityDuplicatorMilitary", "iscQualityDuplicatorWild" };
     private static readonly string[] Printers = { "iscduplicator", "iscduplicatorlarge", "iscduplicatormilitary", "iscduplicatorwild" };
     private static readonly string[] Shrines = { "iscshrineblood", "iscshrinebloodsandy", "iscshrinebloodsnowy", "iscshrinechance", "iscshrinechancesandy", "iscshrinechancesnowy", "iscshrinecleanse", "iscshrinecleansesandy", "iscshrinecleansesnowy", "iscshrinecombat", "iscshrinecombatsandy", "iscshrinecombatsnowy", "iscshrinerestack", "iscshrinerestacksandy", "iscshrinerestacksnowy" };
     private static readonly string[] Shops = { "isctripleshop", "isctripleshoplarge" };
