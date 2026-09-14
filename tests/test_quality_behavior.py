@@ -47,6 +47,11 @@ class QualityBehavior(unittest.TestCase):
     def test_chance_boundaries(self):
         self.assertEqual(promote("base", 0, [1, 1, 1, 1], {0: "u"}, 0, 0), "base")
         self.assertEqual(promote("base", 100, [1, 0, 0, 0], {0: "u"}, 0, 0), "u")
+    def test_default_chance_is_not_compatible_with_zero_of_300(self):
+        expected_promotions = 300 * 0.04
+        zero_probability = (1.0 - 0.04) ** 300
+        self.assertAlmostEqual(expected_promotions, 12.0)
+        self.assertLess(zero_probability, 0.00001)
 
     def test_default_relative_distribution(self):
         weights = [70, 20, 8, 2]

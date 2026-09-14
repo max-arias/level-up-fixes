@@ -15,10 +15,13 @@ internal static class QualityRuntime
     private static MethodInfo _getQualityTier;
     private static Type _qualityTierType;
     private static bool _usable;
+    private static bool _loggedUnavailable;
+    private static bool _loggedPromotionState;
+    private static bool _loggedNoVariants;
+    private static bool _loggedPromotionEntry;
+
     internal static bool IsPluginPresent =>
         BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(LevelUpChoicesFixes.ItemQualitiesGuid);
-    private static bool _loggedUnavailable;
-
     internal static bool IsAvailable => _usable;
 
     internal static void TryInitialize()
@@ -30,12 +33,19 @@ internal static class QualityRuntime
             try
             {
                 Assembly assembly = BepInEx.Bootstrap.Chainloader.PluginInfos[LevelUpChoicesFixes.ItemQualitiesGuid].Instance.GetType().Assembly;
-                Type catalog = assembly.GetType("ItemQualities.QualityCatalog", false);
-                _toBase = catalog?.GetMethods(BindingFlags.Public | BindingFlags.Static)
-                    .FirstOrDefault(method => HasSignature(method, "GetItemIndexOfQuality", typeof(ItemIndex), typeof(ItemIndex)));
+                Type catalog = FindCatalogType(assembly);
                 _getQualityTier = catalog?.GetMethods(BindingFlags.Public | BindingFlags.Static)
-                    .FirstOrDefault(method => method.Name == "GetQualityTier" && method.ReturnType.IsEnum && method.GetParameters().Length == 1 && method.GetParameters()[0].ParameterType == typeof(ItemIndex));
+                    .FirstOrDefault(method => method.Name == "GetQualityTier" &&
+                        method.ReturnType.IsEnum &&
+                        method.GetParameters().Length == 1 &&
+                        method.GetParameters()[0].ParameterType == typeof(ItemIndex));
                 _qualityTierType = _getQualityTier?.ReturnType;
+                _toBase = _qualityTierType == null ? null : catalog?.GetMethod(
+                    "GetItemIndexOfQuality",
+                    BindingFlags.Public | BindingFlags.Static,
+                    null,
+                    new[] { typeof(ItemIndex), _qualityTierType },
+                    null);
                 _usable = _toBase != null && _getQualityTier != null && _qualityTierType != null;
                 if (!_usable)
                     LogUnavailable("ItemQualities API signatures were not found.");
@@ -74,6 +84,11 @@ internal static class QualityRuntime
         if (!ConfigState.QualityEnabled || !NetworkServer.active)
             return baseItem;
         TryInitialize();
+        if (!_loggedPromotionEntry)
+        {
+            Log.Info($"Quality promotion reached: apiReady={_usable}, enabled={ConfigState.QualityEnabled}, server={NetworkServer.active}.");
+            _loggedPromotionEntry = true;
+        }
         if (!_usable || baseItem == ItemIndex.None)
             return baseItem;
 
@@ -95,6 +110,22 @@ internal static class QualityRuntime
                     availableWeights.Add(configuredWeights[tier]);
                 }
             }
+
+            if (!_loggedPromotionState)
+            {
+                Log.Info($"Quality promotion active: chance={chance:0.##}%, luck={luck:0.##}, eligible quality tiers={availableTiers.Count}.");
+                _loggedPromotionState = true;
+            }
+            if (availableTiers.Count == 0)
+            {
+                if (!_loggedNoVariants)
+                {
+                    Log.Warning($"ItemQualities returned no variants for base item {baseItem}.");
+                    _loggedNoVariants = true;
+                }
+                return baseItem;
+            }
+
             int selected = QualityRollPolicy.SelectWeightedTier(availableTiers, availableWeights, UnityEngine.Random.value);
             if (selected < 0)
                 return baseItem;
@@ -113,11 +144,21 @@ internal static class QualityRuntime
         return (ItemIndex)_toBase.Invoke(null, new[] { (object)baseItem, qualityTier });
     }
 
-    private static bool HasSignature(MethodInfo method, string name, Type first, Type second)
+    private static Type FindCatalogType(Assembly preferred)
     {
-        ParameterInfo[] parameters = method.GetParameters();
-        return method.Name == name && method.ReturnType == typeof(ItemIndex) && parameters.Length == 2 &&
-            parameters[0].ParameterType == first && parameters[1].ParameterType.IsEnum;
+        Type catalog = preferred?.GetType("ItemQualities.QualityCatalog", false);
+        if (catalog != null)
+            return catalog;
+
+        foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            if (assembly == preferred)
+                continue;
+            catalog = assembly.GetType("ItemQualities.QualityCatalog", false);
+            if (catalog != null)
+                return catalog;
+        }
+        return null;
     }
 
     private static void Disable(string message)

@@ -4,7 +4,7 @@ Run each case with a disposable Risk of Rain 2 profile containing the pinned `Le
 
 | Case | Procedure | Expected observation |
 | --- | --- | --- |
-| Quality defaults | Start a run, level repeatedly, record 10,000 promoted choices with a fixed test seed or large sample | Quality promotion is approximately 4%; available quality tiers follow normalized 70/20/8/2 weights. |
+| Quality defaults | Start a run, level repeatedly, record 10,000 promoted choices with a fixed test seed or large sample | Quality promotion is approximately 4%; 300 eligible rolls should average about 12 quality items, with a zero-result run having probability about 0.00048%. Available quality tiers follow normalized 70/20/8/2 weights. |
 | Quality chance 0 | Set `Quality Chance=0`, start a fresh run | No quality pickup is offered; LevelUpChoices options, grants, and `SyncItems` remain normal. |
 | Quality chance 100 | Set `Quality Chance=100`, leave all tier weights positive | Every eligible base item becomes a quality variant; absent variants never become ordinary alternatives. |
 | Missing quality API | Remove Item Qualities, start a run | Add-on logs a fail-closed warning; original LevelUpChoices still rolls and grants items. |

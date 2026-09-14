@@ -38,12 +38,12 @@ python3 build/package.py
 
 The package is created at `build/TeamTayne-LevelUpChoicesFixes-1.0.0.zip` with the required files at its archive root.
 
-## Verification
+## Diagnostic chart
 
-Pure behavior checks:
+Generate the default LevelUpChoices and Item Qualities probability chart:
 
 ```bash
-python3 -m unittest discover -s tests -v
+python3 build/quality_chance_chart.py
 ```
 
-Manual game and multiplayer verification is documented in [`tests/IN_GAME_TEST_MATRIX.md`](tests/IN_GAME_TEST_MATRIX.md).
+The SVG output is written to [`build/quality-chance-chart.svg`](build/quality-chance-chart.svg). Dashed lines show the expected 4% quality promotion and its `70 / 20 / 8 / 2` tier split.

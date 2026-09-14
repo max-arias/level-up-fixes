@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1226" height="700" viewBox="0 0 1226 700">
+<rect width="100%" height="100%" fill="#292929"/>
+<rect x="76" y="58" width="1128" height="502" fill="#303030" stroke="#171717"/>
+<text x="613.00" y="25.00" fill="#e8e8e8" font-family="Arial, sans-serif" font-size="18px" text-anchor="middle" font-weight="bold">LevelUpChoices default tier probabilities with Item Qualities promotion</text>
+<text x="613.00" y="45.00" fill="#bcbcbc" font-family="Arial, sans-serif" font-size="12px" text-anchor="middle" font-weight="normal">Quality promotion is post-roll: base tier probabilities stay unchanged; quality rates are shown as dashed lines.</text>
+<line x1="76" y1="560.00" x2="1204" y2="560.00" stroke="#454545" stroke-width="1"/>
+<text x="66.00" y="564.00" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="end" font-weight="normal">0%</text>
+<line x1="76" y1="509.80" x2="1204" y2="509.80" stroke="#454545" stroke-width="1"/>
+<text x="66.00" y="513.80" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="end" font-weight="normal">10%</text>
+<line x1="76" y1="459.60" x2="1204" y2="459.60" stroke="#454545" stroke-width="1"/>
+<text x="66.00" y="463.60" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="end" font-weight="normal">20%</text>
+<line x1="76" y1="409.40" x2="1204" y2="409.40" stroke="#454545" stroke-width="1"/>
+<text x="66.00" y="413.40" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="end" font-weight="normal">30%</text>
+<line x1="76" y1="359.20" x2="1204" y2="359.20" stroke="#454545" stroke-width="1"/>
+<text x="66.00" y="363.20" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="end" font-weight="normal">40%</text>
+<line x1="76" y1="309.00" x2="1204" y2="309.00" stroke="#454545" stroke-width="1"/>
+<text x="66.00" y="313.00" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="end" font-weight="normal">50%</text>
+<line x1="76" y1="258.80" x2="1204" y2="258.80" stroke="#454545" stroke-width="1"/>
+<text x="66.00" y="262.80" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="end" font-weight="normal">60%</text>
+<line x1="76" y1="208.60" x2="1204" y2="208.60" stroke="#454545" stroke-width="1"/>
+<text x="66.00" y="212.60" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="end" font-weight="normal">70%</text>
+<line x1="76" y1="158.40" x2="1204" y2="158.40" stroke="#454545" stroke-width="1"/>
+<text x="66.00" y="162.40" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="end" font-weight="normal">80%</text>
+<line x1="76" y1="108.20" x2="1204" y2="108.20" stroke="#454545" stroke-width="1"/>
+<text x="66.00" y="112.20" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="end" font-weight="normal">90%</text>
+<line x1="76" y1="58.00" x2="1204" y2="58.00" stroke="#454545" stroke-width="1"/>
+<text x="66.00" y="62.00" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="end" font-weight="normal">100%</text>
+<line x1="76.00" y1="58" x2="76.00" y2="560" stroke="#252525" stroke-width="1"/>
+<text x="76.00" y="580.00" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="middle" font-weight="normal">1</text>
+<line x1="191.10" y1="58" x2="191.10" y2="560" stroke="#252525" stroke-width="1"/>
+<text x="191.10" y="580.00" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="middle" font-weight="normal">6</text>
+<line x1="306.20" y1="58" x2="306.20" y2="560" stroke="#252525" stroke-width="1"/>
+<text x="306.20" y="580.00" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="middle" font-weight="normal">11</text>
+<line x1="421.31" y1="58" x2="421.31" y2="560" stroke="#252525" stroke-width="1"/>
+<text x="421.31" y="580.00" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="middle" font-weight="normal">16</text>
+<line x1="536.41" y1="58" x2="536.41" y2="560" stroke="#252525" stroke-width="1"/>
+<text x="536.41" y="580.00" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="middle" font-weight="normal">21</text>
+<line x1="651.51" y1="58" x2="651.51" y2="560" stroke="#252525" stroke-width="1"/>
+<text x="651.51" y="580.00" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="middle" font-weight="normal">26</text>
+<line x1="766.61" y1="58" x2="766.61" y2="560" stroke="#252525" stroke-width="1"/>
+<text x="766.61" y="580.00" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="middle" font-weight="normal">31</text>
+<line x1="881.71" y1="58" x2="881.71" y2="560" stroke="#252525" stroke-width="1"/>
+<text x="881.71" y="580.00" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="middle" font-weight="normal">36</text>
+<line x1="996.82" y1="58" x2="996.82" y2="560" stroke="#252525" stroke-width="1"/>
+<text x="996.82" y="580.00" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="middle" font-weight="normal">41</text>
+<line x1="1111.92" y1="58" x2="1111.92" y2="560" stroke="#252525" stroke-width="1"/>
+<text x="1111.92" y="580.00" fill="#c8c8c8" font-family="Arial, sans-serif" font-size="11px" text-anchor="middle" font-weight="normal">46</text>
+<polyline points="76.00,178.23 99.02,193.04 122.04,207.85 145.06,222.66 168.08,237.46 191.10,252.27 214.12,267.08 237.14,281.89 260.16,296.70 283.18,311.51 306.20,318.91 329.22,326.32 352.24,333.72 375.27,341.13 398.29,348.53 421.31,355.94 444.33,363.34 467.35,370.75 490.37,378.15 513.39,385.56 536.41,392.96 559.43,400.36 582.45,407.77 605.47,415.17 628.49,422.58 651.51,429.98 674.53,437.39 697.55,444.79 720.57,452.20 743.59,459.60 766.61,459.60 789.63,459.60 812.65,459.60 835.67,459.60 858.69,459.60 881.71,459.60 904.73,459.60 927.76,459.60 950.78,459.60 973.80,459.60 996.82,459.60 1019.84,459.60 1042.86,459.60 1065.88,459.60 1088.90,459.60 1111.92,459.60 1134.94,459.60 1157.96,459.60 1180.98,459.60 1204.00,459.60" fill="none" stroke="#f5f5f5" stroke-width="2.8"/>
+<polyline points="76.00,478.17 99.02,471.65 122.04,465.12 145.06,458.60 168.08,452.07 191.10,445.54 214.12,439.02 237.14,432.49 260.16,425.97 283.18,419.44 306.20,416.18 329.22,412.91 352.24,409.65 375.27,406.39 398.29,403.12 421.31,399.86 444.33,396.60 467.35,393.34 490.37,390.07 513.39,386.81 536.41,383.55 559.43,380.28 582.45,377.02 605.47,373.76 628.49,370.50 651.51,367.23 674.53,363.97 697.55,360.71 720.57,357.44 743.59,354.18 766.61,354.18 789.63,354.18 812.65,354.18 835.67,354.18 858.69,354.18 881.71,354.18 904.73,354.18 927.76,354.18 950.78,354.18 973.80,354.18 996.82,354.18 1019.84,354.18 1042.86,354.18 1065.88,354.18 1088.90,354.18 1111.92,354.18 1134.94,354.18 1157.96,354.18 1180.98,354.18 1204.00,354.18" fill="none" stroke="#7bd64a" stroke-width="2.8"/>
+<polyline points="76.00,535.65 99.02,531.39 122.04,527.12 145.06,522.85 168.08,518.59 191.10,514.32 214.12,510.05 237.14,505.78 260.16,501.52 283.18,497.25 306.20,495.12 329.22,492.98 352.24,490.85 375.27,488.72 398.29,486.58 421.31,484.45 444.33,482.32 467.35,480.18 490.37,478.05 513.39,475.92 536.41,473.78 559.43,471.65 582.45,469.51 605.47,467.38 628.49,465.25 651.51,463.11 674.53,460.98 697.55,458.85 720.57,456.71 743.59,454.58 766.61,454.58 789.63,454.58 812.65,454.58 835.67,454.58 858.69,454.58 881.71,454.58 904.73,454.58 927.76,454.58 950.78,454.58 973.80,454.58 996.82,454.58 1019.84,454.58 1042.86,454.58 1065.88,454.58 1088.90,454.58 1111.92,454.58 1134.94,454.58 1157.96,454.58 1180.98,454.58 1204.00,454.58" fill="none" stroke="#e9683f" stroke-width="2.8"/>
+<polyline points="76.00,552.72 99.02,550.46 122.04,548.20 145.06,545.94 168.08,543.68 191.10,541.43 214.12,539.17 237.14,536.91 260.16,534.65 283.18,532.39 306.20,531.26 329.22,530.13 352.24,529.00 375.27,527.87 398.29,526.74 421.31,525.61 444.33,524.48 467.35,523.35 490.37,522.22 513.39,521.10 536.41,519.97 559.43,518.84 582.45,517.71 605.47,516.58 628.49,515.45 651.51,514.32 674.53,513.19 697.55,512.06 720.57,510.93 743.59,509.80 766.61,509.80 789.63,509.80 812.65,509.80 835.67,509.80 858.69,509.80 881.71,509.80 904.73,509.80 927.76,509.80 950.78,509.80 973.80,509.80 996.82,509.80 1019.84,509.80 1042.86,509.80 1065.88,509.80 1088.90,509.80 1111.92,509.80 1134.94,509.80 1157.96,509.80 1180.98,509.80 1204.00,509.80" fill="none" stroke="#6fa9e8" stroke-width="2.8"/>
+<polyline points="76.00,553.22 99.02,551.47 122.04,549.71 145.06,547.95 168.08,546.20 191.10,544.44 214.12,542.68 237.14,540.92 260.16,539.17 283.18,537.41 306.20,536.53 329.22,535.65 352.24,534.77 375.27,533.90 398.29,533.02 421.31,532.14 444.33,531.26 467.35,530.38 490.37,529.50 513.39,528.62 536.41,527.75 559.43,526.87 582.45,525.99 605.47,525.11 628.49,524.23 651.51,523.35 674.53,522.48 697.55,521.60 720.57,520.72 743.59,519.84 766.61,519.84 789.63,519.84 812.65,519.84 835.67,519.84 858.69,519.84 881.71,519.84 904.73,519.84 927.76,519.84 950.78,519.84 973.80,519.84 996.82,519.84 1019.84,519.84 1042.86,519.84 1065.88,519.84 1088.90,519.84 1111.92,519.84 1134.94,519.84 1157.96,519.84 1180.98,519.84 1204.00,519.84" fill="none" stroke="#eee95c" stroke-width="2.8"/>
+<polyline points="76.00,539.92 1204.00,539.92" fill="none" stroke="#ffffff" stroke-width="2.2"/>
+<polyline points="76.00,545.94 1204.00,545.94" fill="none" stroke="#75d65a" stroke-width="2.2" stroke-dasharray="8 6"/>
+<polyline points="76.00,555.98 1204.00,555.98" fill="none" stroke="#c08cff" stroke-width="2.2" stroke-dasharray="8 6"/>
+<polyline points="76.00,558.39 1204.00,558.39" fill="none" stroke="#ff9b4a" stroke-width="2.2" stroke-dasharray="8 6"/>
+<polyline points="76.00,559.60 1204.00,559.60" fill="none" stroke="#ff5b5b" stroke-width="2.2" stroke-dasharray="8 6"/>
+<text x="613.00" y="595.00" fill="#e8e8e8" font-family="Arial, sans-serif" font-size="13px" text-anchor="middle" font-weight="normal">Tokens used</text>
+<text x="18" y="309.00" fill="#e8e8e8" font-family="Arial, sans-serif" font-size="13px" text-anchor="middle" transform="rotate(-90 18 309.00)">Chance</text>
+<line x1="82" y1="647" x2="107" y2="647" stroke="#f5f5f5" stroke-width="3"/>
+<text x="114.00" y="651.00" fill="#eeeeee" font-family="Arial, sans-serif" font-size="11px" text-anchor="start" font-weight="normal">Common (Tier 1)</text>
+<line x1="287" y1="647" x2="312" y2="647" stroke="#7bd64a" stroke-width="3"/>
+<text x="319.00" y="651.00" fill="#eeeeee" font-family="Arial, sans-serif" font-size="11px" text-anchor="start" font-weight="normal">Uncommon (Tier 2)</text>
+<line x1="492" y1="647" x2="517" y2="647" stroke="#e9683f" stroke-width="3"/>
+<text x="524.00" y="651.00" fill="#eeeeee" font-family="Arial, sans-serif" font-size="11px" text-anchor="start" font-weight="normal">Legendary (Tier 3)</text>
+<line x1="697" y1="647" x2="722" y2="647" stroke="#6fa9e8" stroke-width="3"/>
+<text x="729.00" y="651.00" fill="#eeeeee" font-family="Arial, sans-serif" font-size="11px" text-anchor="start" font-weight="normal">Lunar</text>
+<line x1="902" y1="647" x2="927" y2="647" stroke="#eee95c" stroke-width="3"/>
+<text x="934.00" y="651.00" fill="#eeeeee" font-family="Arial, sans-serif" font-size="11px" text-anchor="start" font-weight="normal">Boss</text>
+<line x1="82" y1="680" x2="107" y2="680" stroke="#ffffff" stroke-width="3"/>
+<text x="114.00" y="684.00" fill="#eeeeee" font-family="Arial, sans-serif" font-size="11px" text-anchor="start" font-weight="normal">Any quality</text>
+<line x1="287" y1="680" x2="312" y2="680" stroke="#75d65a" stroke-width="3" stroke-dasharray="8 6"/>
+<text x="319.00" y="684.00" fill="#eeeeee" font-family="Arial, sans-serif" font-size="11px" text-anchor="start" font-weight="normal">Quality Uncommon</text>
+<line x1="492" y1="680" x2="517" y2="680" stroke="#c08cff" stroke-width="3" stroke-dasharray="8 6"/>
+<text x="524.00" y="684.00" fill="#eeeeee" font-family="Arial, sans-serif" font-size="11px" text-anchor="start" font-weight="normal">Quality Rare</text>
+<line x1="697" y1="680" x2="722" y2="680" stroke="#ff9b4a" stroke-width="3" stroke-dasharray="8 6"/>
+<text x="729.00" y="684.00" fill="#eeeeee" font-family="Arial, sans-serif" font-size="11px" text-anchor="start" font-weight="normal">Quality Epic</text>
+<line x1="902" y1="680" x2="927" y2="680" stroke="#ff5b5b" stroke-width="3" stroke-dasharray="8 6"/>
+<text x="934.00" y="684.00" fill="#eeeeee" font-family="Arial, sans-serif" font-size="11px" text-anchor="start" font-weight="normal">Quality Legendary</text>
+</svg>
