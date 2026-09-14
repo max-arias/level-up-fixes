@@ -15,6 +15,10 @@ Install this package with a Thunderstore-compatible mod manager. Item Qualities 
 
 When Item Qualities is installed, quality variants appear directly in LevelUpChoices item choices.
 
+### Why guaranteed sets exist
+
+LevelUpChoices can remove chests and other item sources, while Item Qualities normally gets many of its quality rolls from those sources. Guaranteed sets replace some of those lost opportunities with predictable quality choices during the level-up progression.
+
 Default quality settings:
 
 - Random quality chance: `4%` per ordinary offered item
@@ -26,6 +30,10 @@ Default quality settings:
 Guaranteed sets use the normal LevelUpChoices item-rarity progression. Early sets are usually white; green and red base items become more likely as you select more items. The quality tier is selected randomly using the configured quality weights.
 
 If an earlier choice set is still waiting to be selected, the guaranteed set is queued until the next set is generated. Guaranteed quality settings do not replace or alter choices already on screen.
+
+### Without guaranteed quality sets
+
+Set `Guaranteed Quality Every N Levels` to `0` to use only the ordinary random quality chance. With the default `Quality Chance=4%`, each offered item has a `4%` chance to be quality. A three-item choice screen therefore has an `11.53%` chance of containing at least one quality item, but it is not guaranteed. Across 100 ordinary offered items, approximately 4 quality items are expected.
 
 ## Probability chart
 
