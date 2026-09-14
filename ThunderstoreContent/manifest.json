@@ -2,7 +2,7 @@
   "name": "LevelUpChoicesFixes",
   "version_number": "1.0.0",
   "website_url": "https://github.com/max-arias/level-up-fixes",
-  "description": "Compatibility fixes and configurable integrations for karaeren.LevelUpChoices, including Item Qualities, safe rerolls, pause recovery, blacklists, schedules, interactables, and XP curves.",
+  "description": "Compatibility fixes and configurable integrations for karaeren.LevelUpChoices, including optional Risk of Options controls, Item Qualities, Quality chest filtering, safe rerolls, pause recovery, blacklists, schedules, interactables, and XP curves.",
   "dependencies": [
     "karaeren-LevelUpChoices-1.1.3",
     "RiskofThunder-R2API_Networking-1.0.3"

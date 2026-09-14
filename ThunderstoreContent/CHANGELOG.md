@@ -9,3 +9,6 @@
 - Declared the R2API Networking runtime dependency and applied the documented `NetworkingAPI.PluginGUID` dependency attribute.
 - Corrected the BepInEx package route so the manager can install the DLL under its standard author/package namespace.
 - Included the PDB alongside the release DLL for supported debugging workflows.
+- Added optional Risk of Options registration for live-safe quality, schedule, and interactable settings.
+- Added host-to-client synchronization when server settings change during a run.
+- Added `Allow Quality Chests`, defaulting to `false`, so Item Qualities chest cards follow LevelUpChoices interactable removal.

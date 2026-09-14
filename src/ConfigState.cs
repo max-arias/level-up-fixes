@@ -28,6 +28,7 @@ internal static class ConfigState
     private static string _serverBlacklist = string.Empty;
 
     internal static ConfigEntry<bool> EnableQualityIntegration { get; private set; }
+    internal static ConfigEntry<bool> AllowQualityChests { get; private set; }
     internal static ConfigEntry<float> QualityChance { get; private set; }
     internal static ConfigEntry<float> UncommonQualityWeight { get; private set; }
     internal static ConfigEntry<float> RareQualityWeight { get; private set; }
@@ -49,6 +50,7 @@ internal static class ConfigState
     internal static ConfigEntry<float> ExponentialXpScaling { get; private set; }
 
     internal static bool QualityEnabled => Value(EnableQualityIntegration);
+    internal static bool AllowQualityChestsValue => Value(AllowQualityChests);
     internal static float QualityChanceValue => ClampPercent(Value(QualityChance));
     internal static float[] QualityWeights => new[]
     {
@@ -67,6 +69,8 @@ internal static class ConfigState
     {
         EnableQualityIntegration = config.Bind(ServerSection, "Enable Quality Integration", true,
             "Promote LevelUpChoices base items to Item Qualities variants after the original roll.");
+        AllowQualityChests = config.Bind(ServerSection, "Allow Quality Chests", false,
+            "Allow Item Qualities chest variants when LevelUpChoices removes item-giving interactables.");
         QualityChance = config.Bind(ServerSection, "Quality Chance", 4f,
             "Percent chance for a level-up item to receive a quality. Host value is authoritative.");
         UncommonQualityWeight = config.Bind(ServerSection, "Uncommon Quality Weight", 70f,
@@ -112,19 +116,83 @@ internal static class ConfigState
         NetworkingAPI.RegisterMessageType<SyncFixConfig>();
         Run.onRunStartGlobal += OnRunStart;
         Run.onRunDestroyGlobal += OnRunDestroy;
+        SubscribeServerEntries();
     }
 
     internal static void UnregisterNetworkMessage()
     {
         Run.onRunStartGlobal -= OnRunStart;
         Run.onRunDestroyGlobal -= OnRunDestroy;
+        UnsubscribeServerEntries();
+    }
+
+    private static void SubscribeServerEntries()
+    {
+        EnableQualityIntegration.SettingChanged += OnServerSettingChanged;
+        AllowQualityChests.SettingChanged += OnServerSettingChanged;
+        QualityChance.SettingChanged += OnServerSettingChanged;
+        UncommonQualityWeight.SettingChanged += OnServerSettingChanged;
+        RareQualityWeight.SettingChanged += OnServerSettingChanged;
+        EpicQualityWeight.SettingChanged += OnServerSettingChanged;
+        LegendaryQualityWeight.SettingChanged += OnServerSettingChanged;
+        ItemBlacklist.SettingChanged += OnServerSettingChanged;
+        RerollRefreshOnLevel.SettingChanged += OnServerSettingChanged;
+        RerollRefreshEveryNLevels.SettingChanged += OnServerSettingChanged;
+        ItemChoicesEveryNLevels.SettingChanged += OnServerSettingChanged;
+        PreserveChests.SettingChanged += OnServerSettingChanged;
+        PreservePrinters.SettingChanged += OnServerSettingChanged;
+        PreserveShrines.SettingChanged += OnServerSettingChanged;
+        PreserveShops.SettingChanged += OnServerSettingChanged;
+        PreserveScrappers.SettingChanged += OnServerSettingChanged;
+        PreserveCleansePools.SettingChanged += OnServerSettingChanged;
+        InteractableCreditMultiplier.SettingChanged += OnServerSettingChanged;
+        XpCurve.SettingChanged += OnServerSettingChanged;
+        StartingXp.SettingChanged += OnServerSettingChanged;
+        ExponentialXpScaling.SettingChanged += OnServerSettingChanged;
+    }
+
+    private static void UnsubscribeServerEntries()
+    {
+        EnableQualityIntegration.SettingChanged -= OnServerSettingChanged;
+        AllowQualityChests.SettingChanged -= OnServerSettingChanged;
+        QualityChance.SettingChanged -= OnServerSettingChanged;
+        UncommonQualityWeight.SettingChanged -= OnServerSettingChanged;
+        RareQualityWeight.SettingChanged -= OnServerSettingChanged;
+        EpicQualityWeight.SettingChanged -= OnServerSettingChanged;
+        LegendaryQualityWeight.SettingChanged -= OnServerSettingChanged;
+        ItemBlacklist.SettingChanged -= OnServerSettingChanged;
+        RerollRefreshOnLevel.SettingChanged -= OnServerSettingChanged;
+        RerollRefreshEveryNLevels.SettingChanged -= OnServerSettingChanged;
+        ItemChoicesEveryNLevels.SettingChanged -= OnServerSettingChanged;
+        PreserveChests.SettingChanged -= OnServerSettingChanged;
+        PreservePrinters.SettingChanged -= OnServerSettingChanged;
+        PreserveShrines.SettingChanged -= OnServerSettingChanged;
+        PreserveShops.SettingChanged -= OnServerSettingChanged;
+        PreserveScrappers.SettingChanged -= OnServerSettingChanged;
+        PreserveCleansePools.SettingChanged -= OnServerSettingChanged;
+        InteractableCreditMultiplier.SettingChanged -= OnServerSettingChanged;
+        XpCurve.SettingChanged -= OnServerSettingChanged;
+        StartingXp.SettingChanged -= OnServerSettingChanged;
+        ExponentialXpScaling.SettingChanged -= OnServerSettingChanged;
+    }
+
+    private static void OnServerSettingChanged(object sender, EventArgs _)
+    {
+        if (NetworkServer.active && Run.instance != null)
+            SendToClients();
+    }
+
+    private static void SendToClients()
+    {
+        new SyncFixConfig(true).Send(NetworkDestination.Clients);
     }
 
     private static void OnRunStart(Run _)
     {
         if (NetworkServer.active)
-            new SyncFixConfig(true).Send(NetworkDestination.Clients);
+            SendToClients();
     }
+
 
     private static void OnRunDestroy(Run _)
     {
@@ -143,6 +211,7 @@ internal static class ConfigState
     internal sealed class SyncFixConfig : INetMessage
     {
         private bool _enableQuality;
+        private bool _allowQualityChests;
         private float _qualityChance;
         private float _uncommon;
         private float _rare;
@@ -168,6 +237,7 @@ internal static class ConfigState
         public SyncFixConfig(bool _) 
         {
             _enableQuality = EnableQualityIntegration.Value;
+            _allowQualityChests = AllowQualityChests.Value;
             _qualityChance = QualityChance.Value;
             _uncommon = UncommonQualityWeight.Value;
             _rare = RareQualityWeight.Value;
@@ -192,6 +262,7 @@ internal static class ConfigState
         public void Serialize(NetworkWriter writer)
         {
             writer.Write(_enableQuality);
+            writer.Write(_allowQualityChests);
             writer.Write(_qualityChance);
             writer.Write(_uncommon);
             writer.Write(_rare);
@@ -216,6 +287,7 @@ internal static class ConfigState
         public void Deserialize(NetworkReader reader)
         {
             _enableQuality = reader.ReadBoolean();
+            _allowQualityChests = reader.ReadBoolean();
             _qualityChance = reader.ReadSingle();
             _uncommon = reader.ReadSingle();
             _rare = reader.ReadSingle();
@@ -252,6 +324,7 @@ internal static class ConfigState
             object value = entry.Definition.Key switch
             {
                 "Enable Quality Integration" => _overrides._enableQuality,
+                "Allow Quality Chests" => _overrides._allowQualityChests,
                 "Quality Chance" => _overrides._qualityChance,
                 "Uncommon Quality Weight" => _overrides._uncommon,
                 "Rare Quality Weight" => _overrides._rare,

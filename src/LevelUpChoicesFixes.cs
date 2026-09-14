@@ -17,12 +17,14 @@ namespace TeamTayne.LevelUpChoicesFixes;
 [BepInDependency(NetworkingAPI.PluginGUID)]
 [BepInDependency("karaeren.LevelUpChoices", "1.1.3")]
 [BepInDependency(ItemQualitiesGuid, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(RiskOfOptionsIntegration.PluginGUID, BepInDependency.DependencyFlags.SoftDependency)]
 [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
 public sealed class LevelUpChoicesFixes : BaseUnityPlugin
 {
     internal const string PluginGUID = "TeamTayne.LevelUpChoicesFixes";
     internal const string PluginName = "LevelUpChoicesFixes";
     internal const string PluginVersion = "1.0.0";
+
     internal const string ItemQualitiesGuid = "com.Gorakh.ItemQualities";
 
     private Harmony _harmony;
@@ -31,6 +33,7 @@ public sealed class LevelUpChoicesFixes : BaseUnityPlugin
     {
         Log.Init(Logger);
         ConfigState.Initialize(Config);
+        RiskOfOptionsIntegration.TryRegister();
         ConfigState.RegisterNetworkMessage();
         _harmony = new Harmony(PluginGUID);
         IntegrationPatches.Install(_harmony);
@@ -349,6 +352,16 @@ internal static class IntegrationPatches
             if (blacklist.Remove(name))
                 PreservedSpawnNames.Add(name);
         }
+        if (QualityRuntime.IsPluginPresent)
+        {
+            foreach (string name in ItemSourceGroups.QualityChests)
+            {
+                if (ConfigState.AllowQualityChestsValue)
+                    blacklist.Remove(name);
+                else
+                    blacklist.Add(name);
+            }
+        }
     }
 
     private static void InteractablePostfix()
@@ -480,6 +493,7 @@ internal static class IntegrationPatches
 internal static class ItemSourceGroups
 {
     private static readonly string[] Chests = { "isccasinochest", "isccategorychestdamage", "isccategorychesthealing", "isccategorychestutility", "iscchest1", "iscchest1stealthed", "iscchest2", "iscgoldchest", "isclunarchest" };
+    internal static readonly string[] QualityChests = { "iscQualityChest1", "iscQualityChest2" };
     private static readonly string[] Printers = { "iscduplicator", "iscduplicatorlarge", "iscduplicatormilitary", "iscduplicatorwild" };
     private static readonly string[] Shrines = { "iscshrineblood", "iscshrinebloodsandy", "iscshrinebloodsnowy", "iscshrinechance", "iscshrinechancesandy", "iscshrinechancesnowy", "iscshrinecleanse", "iscshrinecleansesandy", "iscshrinecleansesnowy", "iscshrinecombat", "iscshrinecombatsandy", "iscshrinecombatsnowy", "iscshrinerestack", "iscshrinerestacksandy", "iscshrinerestacksnowy" };
     private static readonly string[] Shops = { "isctripleshop", "isctripleshoplarge" };
