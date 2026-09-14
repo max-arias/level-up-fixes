@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using BepInEx;
 using HarmonyLib;
+using R2API.Networking;
 using RoR2;
 using R2API.Utils;
 using UnityEngine;
@@ -13,6 +14,7 @@ using UnityEngine.Networking;
 namespace TeamTayne.LevelUpChoicesFixes;
 
 [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
+[BepInDependency(NetworkingAPI.PluginGUID)]
 [BepInDependency("karaeren.LevelUpChoices", "1.1.3")]
 [BepInDependency(ItemQualitiesGuid, BepInDependency.DependencyFlags.SoftDependency)]
 [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]

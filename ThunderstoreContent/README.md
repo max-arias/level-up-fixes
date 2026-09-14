@@ -35,7 +35,13 @@ All settings are BepInEx server settings in the `Server` section. The item black
 
 ## Installation
 
-Install the package with a Risk of Rain 2 Thunderstore manager. It requires `LevelUpChoices` 1.1.3. Do not copy `LevelUpChoices.dll` or Item Qualities into this package; both are dependencies.
+Install the package with a Risk of Rain 2 Thunderstore manager. It requires `LevelUpChoices` 1.1.3 and `R2API Networking` 1.0.3; both are declared in `manifest.json` and installed automatically. Do not copy `LevelUpChoices.dll` or Item Qualities into this package; both are dependencies.
+
+The archive keeps `LevelUpChoicesFixes.dll` and `LevelUpChoicesFixes.pdb` directly under `BepInEx/plugins`. The manager supplies the author/package directory (`TeamTayne-LevelUpChoicesFixes`) during installation.
+
+## AI-generated content
+
+This package contains AI-assisted code. Select the Thunderstore `AI Generated` category when publishing if that category is available for the Risk of Rain 2 community. The package must pass the manual in-game and multiplayer matrix before upload; the repository currently has build and pure behavior verification only.
 
 ## Verification matrix
 

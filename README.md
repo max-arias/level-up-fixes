@@ -13,12 +13,22 @@ It intentionally runs on top of `karaeren.LevelUpChoices` 1.1.3. It does not rep
 
 ## Build
 
+The project compiles against the upstream `LevelUpChoices.dll` API assembly without bundling it. Obtain a matching upstream checkout at `./luc` before building:
+
 ```bash
-/tmp/dotnet/dotnet restore src/LevelUpChoicesFixes.csproj --configfile luc/nuget.config
+git clone https://github.com/karaeren/LevelUpChoices.git luc
+```
+
+Then restore and build:
+
+```bash
+/tmp/dotnet/dotnet restore src/LevelUpChoicesFixes.csproj
 /tmp/dotnet/dotnet build src/LevelUpChoicesFixes.csproj --configuration Release
 ```
 
-The project references the tested upstream DLL only for compilation. It is not bundled in the add-on package.
+The package includes the plugin DLL and its PDB directly under the BepInEx plugin route:
+`BepInEx/plugins/LevelUpChoicesFixes.dll` and `BepInEx/plugins/LevelUpChoicesFixes.pdb`.
+The mod manager installs that route into its author/package directory (`TeamTayne-LevelUpChoicesFixes`).
 
 ## Package
 
@@ -26,7 +36,7 @@ The project references the tested upstream DLL only for compilation. It is not b
 python3 build/package.py
 ```
 
-The package is created at `build/TeamTayne-LevelUpChoicesFixes-1.0.0.zip` with the required files at its archive root and the plugin under `BepInEx/plugins/LevelUpChoicesFixes/`.
+The package is created at `build/TeamTayne-LevelUpChoicesFixes-1.0.0.zip` with the required files at its archive root.
 
 ## Verification
 
