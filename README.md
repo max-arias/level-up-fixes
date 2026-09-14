@@ -1,55 +1,61 @@
-# level-up-fixes
+# LevelUpChoicesFixes
 
-`LevelUpChoicesFixes` is a TeamTayne add-on for **Risk of Rain 2** that extends and fixes issues around the original [karaeren/LevelUpChoices](https://github.com/karaeren/LevelUpChoices) mod.
+`LevelUpChoicesFixes` adds compatibility fixes and configurable quality support to [LevelUpChoices](https://github.com/karaeren/LevelUpChoices) for **Risk of Rain 2**.
 
-It intentionally runs on top of `karaeren.LevelUpChoices` 1.1.3. It does not replace or duplicate the original level-up manager, UI, artifact, XP hook, item-grant path, or network message set.
+## Requirements
 
-## Contents
+- [LevelUpChoices 1.1.3](https://thunderstore.io/package/karaeren/LevelUpChoices/)
+- R2API Networking 1.0.3
+- Optional: [Item Qualities](https://thunderstore.io/package/Gorakh/ItemQualities/)
+- Optional: [Risk of Options](https://thunderstore.io/package/RiskofThunder/RiskOfOptions/)
 
-- `src/` — independently written Harmony and runtime integration code.
-- `ThunderstoreContent/` — Thunderstore package metadata and content.
-- `tests/` — pure behavior checks and the manual in-game QA matrix.
-- `build/` — built assembly and package archive.
+Install the package with a Thunderstore-compatible mod manager. R2API Networking is installed as a dependency. Item Qualities is only needed for the quality features.
 
-## Build
+## Quality integration
 
-The project compiles against the upstream `LevelUpChoices.dll` API assembly without bundling it. Obtain a matching upstream checkout at `./luc` before building:
+With Item Qualities installed, LevelUpChoices can offer quality variants directly in its normal item choices.
 
-```bash
-git clone https://github.com/karaeren/LevelUpChoices.git luc
-```
+Default settings:
 
-Then restore and build:
+- Random quality chance: `4%` per offered item
+- Guaranteed quality set: every `5` levels
+- Choices in a guaranteed set: `3`
+- Quality weights: Uncommon / Rare / Epic / Legendary = `70 / 20 / 8 / 2`
+- Quality chests and quality printers: disabled when LevelUpChoices removes item sources
 
-```bash
-/tmp/dotnet/dotnet restore src/LevelUpChoicesFixes.csproj
-/tmp/dotnet/dotnet build src/LevelUpChoicesFixes.csproj --configuration Release
-```
+Random quality rolls preserve the normal LevelUpChoices item rarity. Guaranteed sets do the same: early choices are usually white, while green and red base items become more likely as you select more items. The quality tier is then selected randomly from the configured quality weights.
 
-The package includes the plugin DLL and its PDB directly under the BepInEx plugin route:
-`BepInEx/plugins/LevelUpChoicesFixes.dll` and `BepInEx/plugins/LevelUpChoicesFixes.pdb`.
-The mod manager installs that route into its author/package directory (`TeamTayne-LevelUpChoicesFixes`).
+At a guaranteed level, the next newly generated choice set contains three quality choices. If an earlier choice set is still waiting to be selected, the guarantee is queued rather than replacing choices already on screen.
 
-## Package
+## Configuration
 
-```bash
-python3 build/package.py
-```
+All settings are server/host settings in the `Server` section of the BepInEx configuration file. The same settings appear in Risk of Options when it is installed.
 
-The package is created at `build/TeamTayne-LevelUpChoicesFixes-1.0.0.zip` with the required files at its archive root.
+Important quality settings:
 
-## Diagnostic chart
+| Setting | Default | Description |
+| --- | ---: | --- |
+| Enable Quality Integration | `true` | Enable quality variants in level-up choices. |
+| Quality Chance | `4%` | Random quality chance for ordinary offered items. |
+| Guaranteed Quality Every N Levels | `5` | Queue a guaranteed quality choice set. Set to `0` to disable. |
+| Guaranteed Quality Choice Count | `3` | Number of guaranteed quality choices. |
+| Uncommon / Rare / Epic / Legendary Quality Weight | `70 / 20 / 8 / 2` | Relative quality-tier weights. |
+| Allow Quality Chests | `false` | Keep Item Qualities chest and printer sources when LevelUpChoices removes item sources. |
 
-Generate the default LevelUpChoices and Item Qualities probability chart:
+Host settings are authoritative in multiplayer and synchronize to connected clients when a run starts or settings change.
 
-```bash
-python3 build/quality_chance_chart.py
-```
+## Other fixes
 
-The SVG output is written to [`build/quality-chance-chart.svg`](build/quality-chance-chart.svg). Dashed lines show the expected 4% quality promotion and its `70 / 20 / 8 / 2` tier split.
+- Prevents quality variants from creating duplicate-item reroll and banish problems.
+- Recovers cleanly when the choice menu is closed through the pause screen or when a run ends.
+- Adds configurable reroll refresh, choice schedules, item blacklists, interactable preservation, interactable credit scaling, and XP curves.
 
-## Guaranteed quality choice sets
+## Probability chart
 
-When Item Qualities is installed, the add-on can replace periodic level-up choice sets with guaranteed quality choices. The default is one set every `5` levels with `3` quality choices. The normal LevelUpChoices drop table still selects each base item, so white/green/red probabilities continue to rise with `UsedTokens`; only the quality promotion chance is bypassed for the guaranteed set. Each resulting quality variant still uses the configured `70 / 20 / 8 / 2` quality-tier weights.
+The repository includes a [quality chance chart](ThunderstoreContent/quality-chance-chart.svg) showing the default LevelUpChoices rarity progression alongside the 4% random quality rate, quality-tier weights, and the default guaranteed-quality cadence.
 
-Set `Guaranteed Quality Every N Levels` to `0` to disable the milestone sets, or change `Guaranteed Quality Choice Count` to control how many choices in each set are forced to quality. If a previous choice set is still unspent, the milestone is queued until the next set is generated. Both settings are server-authoritative and appear in Risk Of Options when installed.
+## Support
+
+Report issues with the mod versions, configuration values, host/client setup, and relevant `BepInEx/LogOutput.log` messages:
+
+https://github.com/max-arias/level-up-fixes/issues

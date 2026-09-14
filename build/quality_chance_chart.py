@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "build" / "quality-chance-chart.svg"
+OUTPUT = ROOT / "ThunderstoreContent" / "quality-chance-chart.svg"
 WIDTH = 1226
 HEIGHT = 700
 PLOT_LEFT = 76
@@ -78,8 +78,8 @@ def build_svg() -> str:
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{HEIGHT}" viewBox="0 0 {WIDTH} {HEIGHT}">',
         '<rect width="100%" height="100%" fill="#292929"/>',
         f'<rect x="{PLOT_LEFT}" y="{PLOT_TOP}" width="{PLOT_WIDTH}" height="{PLOT_HEIGHT}" fill="#303030" stroke="#171717"/>',
-        text(WIDTH / 2, 25, "LevelUpChoices default tier probabilities with Item Qualities promotion", 18, weight="bold", anchor="middle"),
-        text(WIDTH / 2, 45, "Quality promotion is post-roll: base tier probabilities stay unchanged; quality rates are shown as dashed lines.", 12, "#bcbcbc", anchor="middle"),
+        text(WIDTH / 2, 25, "LevelUpChoices rarity and Item Qualities random promotion", 18, weight="bold", anchor="middle"),
+        text(WIDTH / 2, 45, "Solid lines are base-item tiers; dashed lines are the 4% random quality roll and its tier split.", 12, "#bcbcbc", anchor="middle"),
     ]
 
     for percent in range(0, 101, 10):
@@ -104,6 +104,7 @@ def build_svg() -> str:
         text(WIDTH / 2, HEIGHT - 105, "Tokens used", 13, anchor="middle"),
         f'<text x="18" y="{PLOT_TOP + PLOT_HEIGHT / 2:.2f}" fill="#e8e8e8" font-family="Arial, sans-serif" '
         f'font-size="13px" text-anchor="middle" transform="rotate(-90 18 {PLOT_TOP + PLOT_HEIGHT / 2:.2f})">Chance</text>',
+        text(WIDTH / 2, HEIGHT - 85, "Default guarantee: every 5 levels, the next set contains 3 quality choices.", 12, "#bcbcbc", anchor="middle"),
     ])
 
     legend_x = PLOT_LEFT + 6

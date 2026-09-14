@@ -47,6 +47,7 @@ def package():
     files = {
         "icon.png": CONTENT / "icon.png",
         "README.md": CONTENT / "README.md",
+        "quality-chance-chart.svg": CONTENT / "quality-chance-chart.svg",
         "manifest.json": CONTENT / "manifest.json",
         "CHANGELOG.md": CONTENT / "CHANGELOG.md",
         "BepInEx/plugins/LevelUpChoicesFixes.dll": DLL,
@@ -57,7 +58,7 @@ def package():
             archive.write(path, name)
     with zipfile.ZipFile(ARCHIVE) as archive:
         names = set(archive.namelist())
-        assert {"icon.png", "README.md", "manifest.json", "CHANGELOG.md"} <= names
+        assert {"icon.png", "README.md", "quality-chance-chart.svg", "manifest.json", "CHANGELOG.md"} <= names
         assert "LevelUpChoices.dll" not in " ".join(names)
         assert "ItemQualities.dll" not in " ".join(names)
         with tempfile.TemporaryDirectory(prefix="levelupchoicesfixes-profile-") as profile:

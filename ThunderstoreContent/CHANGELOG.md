@@ -2,17 +2,14 @@
 
 ## 1.0.0
 
-- Added the planned correctness, token/schedule, interactable, and XP integration releases behind independent settings.
-- Added fail-closed Item Qualities integration with host-authoritative quality chance and relative tier weights.
-- Added canonical reroll, exclusion, and banish handling without replacing LevelUpChoices state or networking.
-- Added pause teardown recovery, item blacklist, level-based rerolls, scheduled choices, per-category source controls, credit scaling, and XP curve controls.
-- Declared the R2API Networking runtime dependency and applied the documented `NetworkingAPI.PluginGUID` dependency attribute.
-- Corrected the BepInEx package route so the manager can install the DLL under its standard author/package namespace.
-- Included the PDB alongside the release DLL for supported debugging workflows.
-- Added optional Risk of Options registration for live-safe quality, schedule, and interactable settings.
-- Added host-to-client synchronization when server settings change during a run.
-- Added `Allow Quality Chests`, defaulting to `false`, so Item Qualities chest cards follow LevelUpChoices interactable removal.
-- Embedded the package icon in the plugin and registered it with Risk of Options.
-- Extended the default Quality interactable suppression to Item Qualities chest and printer variants.
-- Added configurable guaranteed-quality choice sets, defaulting to three quality choices every five levels.
-- Guaranteed sets retain the normal LevelUpChoices base-item rarity progression while bypassing only the random quality chance; quality tier selection remains weighted and random.
+- Added Item Qualities support for LevelUpChoices item choices.
+- Added a configurable 4% random quality chance with weighted Uncommon, Rare, Epic, and Legendary results.
+- Added guaranteed quality choice sets, defaulting to three quality choices every five levels.
+- Guaranteed sets keep the normal progression from white to green and red item rarities as the run advances.
+- Added safe rerolls and banishes for quality variants without duplicate base items.
+- Added pause/menu cleanup so the game does not remain paused after closing the choice screen.
+- Added configurable item blacklists, reroll refresh, choice schedules, interactable controls, interactable credit scaling, and XP curves.
+- Added optional Risk of Options controls for quality, schedule, and interactable settings.
+- Host/server settings synchronize to clients in multiplayer.
+- Quality chest and printer sources can be kept or removed independently when LevelUpChoices removes item sources.
+- Improved mod-manager installation and included the plugin's debugging symbols for troubleshooting.
