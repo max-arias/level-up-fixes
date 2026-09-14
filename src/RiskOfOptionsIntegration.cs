@@ -49,7 +49,7 @@ internal static class RiskOfOptionsIntegration
             category = "Quality",
             checkIfDisabled = ServerOptionDisabled
         }));
-        ModSettingsManager.AddOption(new CheckBoxOption(ConfigState.AllowQualityChests, new CheckBoxConfig
+        ModSettingsManager.AddOption(new CheckBoxOption(ConfigState.RemoveQualityInteractables, new CheckBoxConfig
         {
             category = "Quality",
             checkIfDisabled = ServerOptionDisabled
@@ -133,36 +133,6 @@ internal static class RiskOfOptionsIntegration
             checkIfDisabled = ServerOptionDisabled
         }));
 
-        ModSettingsManager.AddOption(new CheckBoxOption(ConfigState.PreserveChests, new CheckBoxConfig
-        {
-            category = "Interactables",
-            checkIfDisabled = ServerOptionDisabled
-        }));
-        ModSettingsManager.AddOption(new CheckBoxOption(ConfigState.PreservePrinters, new CheckBoxConfig
-        {
-            category = "Interactables",
-            checkIfDisabled = ServerOptionDisabled
-        }));
-        ModSettingsManager.AddOption(new CheckBoxOption(ConfigState.PreserveShrines, new CheckBoxConfig
-        {
-            category = "Interactables",
-            checkIfDisabled = ServerOptionDisabled
-        }));
-        ModSettingsManager.AddOption(new CheckBoxOption(ConfigState.PreserveShops, new CheckBoxConfig
-        {
-            category = "Interactables",
-            checkIfDisabled = ServerOptionDisabled
-        }));
-        ModSettingsManager.AddOption(new CheckBoxOption(ConfigState.PreserveScrappers, new CheckBoxConfig
-        {
-            category = "Interactables",
-            checkIfDisabled = ServerOptionDisabled
-        }));
-        ModSettingsManager.AddOption(new CheckBoxOption(ConfigState.PreserveCleansePools, new CheckBoxConfig
-        {
-            category = "Interactables",
-            checkIfDisabled = ServerOptionDisabled
-        }));
         ModSettingsManager.AddOption(new StepSliderOption(ConfigState.InteractableCreditMultiplier, new StepSliderConfig
         {
             category = "Interactables",

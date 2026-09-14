@@ -10,5 +10,5 @@
 - Added configurable item blacklists, reroll refresh, choice schedules, interactable controls, interactable credit scaling, and XP curves.
 - Added optional Risk of Options controls for quality, schedule, and interactable settings.
 - Host/server settings synchronize to clients in multiplayer.
-- Quality chest and printer sources can be kept or removed independently when LevelUpChoices removes item sources.
 - Improved mod-manager installation and included the plugin's debugging symbols for troubleshooting.
+- Replaced granular interactable-preservation settings with one `Remove Quality Interactables` control.

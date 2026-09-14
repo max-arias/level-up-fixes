@@ -28,7 +28,7 @@ internal static class ConfigState
     private static string _serverBlacklist = string.Empty;
 
     internal static ConfigEntry<bool> EnableQualityIntegration { get; private set; }
-    internal static ConfigEntry<bool> AllowQualityChests { get; private set; }
+    internal static ConfigEntry<bool> RemoveQualityInteractables { get; private set; }
     internal static ConfigEntry<float> QualityChance { get; private set; }
     internal static ConfigEntry<float> UncommonQualityWeight { get; private set; }
     internal static ConfigEntry<float> RareQualityWeight { get; private set; }
@@ -40,19 +40,13 @@ internal static class ConfigState
     internal static ConfigEntry<RerollRefreshMode> RerollRefreshOnLevel { get; private set; }
     internal static ConfigEntry<int> RerollRefreshEveryNLevels { get; private set; }
     internal static ConfigEntry<int> ItemChoicesEveryNLevels { get; private set; }
-    internal static ConfigEntry<bool> PreserveChests { get; private set; }
-    internal static ConfigEntry<bool> PreservePrinters { get; private set; }
-    internal static ConfigEntry<bool> PreserveShrines { get; private set; }
-    internal static ConfigEntry<bool> PreserveShops { get; private set; }
-    internal static ConfigEntry<bool> PreserveScrappers { get; private set; }
-    internal static ConfigEntry<bool> PreserveCleansePools { get; private set; }
     internal static ConfigEntry<float> InteractableCreditMultiplier { get; private set; }
     internal static ConfigEntry<XpCurveMode> XpCurve { get; private set; }
     internal static ConfigEntry<float> StartingXp { get; private set; }
     internal static ConfigEntry<float> ExponentialXpScaling { get; private set; }
 
     internal static bool QualityEnabled => Value(EnableQualityIntegration);
-    internal static bool AllowQualityChestsValue => Value(AllowQualityChests);
+    internal static bool RemoveQualityInteractablesValue => Value(RemoveQualityInteractables);
     internal static float QualityChanceValue => ClampPercent(Value(QualityChance));
     internal static float[] QualityWeights => new[]
     {
@@ -73,8 +67,8 @@ internal static class ConfigState
     {
         EnableQualityIntegration = config.Bind(ServerSection, "Enable Quality Integration", true,
             "Promote LevelUpChoices base items to Item Qualities variants after the original roll.");
-        AllowQualityChests = config.Bind(ServerSection, "Allow Quality Chests", false,
-            "Allow Item Qualities chest and printer variants when LevelUpChoices removes item-giving interactables.");
+        RemoveQualityInteractables = config.Bind(ServerSection, "Remove Quality Interactables", true,
+            "Remove Item Qualities chests and printers when LevelUpChoices removes item sources.");
         QualityChance = config.Bind(ServerSection, "Quality Chance", 4f,
             "Percent chance for a level-up item to receive a quality. Host value is authoritative.");
         UncommonQualityWeight = config.Bind(ServerSection, "Uncommon Quality Weight", 70f,
@@ -101,18 +95,6 @@ internal static class ConfigState
             "Level interval used by Reroll Refresh On Level.");
         ItemChoicesEveryNLevels = config.Bind(ServerSection, "Item Choices Every N Levels", 1,
             "Grant a level-up choice token every N levels. Existing unspent choices are preserved.");
-        PreserveChests = config.Bind(ServerSection, "Keep Chests", false,
-            "Keep chest sources when LevelUpChoices' existing Remove Chests & Interactables option is enabled.");
-        PreservePrinters = config.Bind(ServerSection, "Keep Printers", false,
-            "Keep printer and duplicator sources when removal is enabled.");
-        PreserveShrines = config.Bind(ServerSection, "Keep Shrines", false,
-            "Keep shrine sources when removal is enabled.");
-        PreserveShops = config.Bind(ServerSection, "Keep Shops", false,
-            "Keep shop sources when removal is enabled.");
-        PreserveScrappers = config.Bind(ServerSection, "Keep Scrappers", false,
-            "Keep scrapper sources when removal is enabled.");
-        PreserveCleansePools = config.Bind(ServerSection, "Keep Cleansing Pools", false,
-            "Keep cleansing pools when removal is enabled.");
         InteractableCreditMultiplier = config.Bind(ServerSection, "Interactable Credit Multiplier", 1f,
             "Multiplier applied to the original interactable credit budget; 1 leaves it unchanged.");
         XpCurve = config.Bind(ServerSection, "XP Curve", XpCurveMode.Exponential,
@@ -140,8 +122,7 @@ internal static class ConfigState
 
     private static void SubscribeServerEntries()
     {
-        EnableQualityIntegration.SettingChanged += OnServerSettingChanged;
-        AllowQualityChests.SettingChanged += OnServerSettingChanged;
+        RemoveQualityInteractables.SettingChanged += OnServerSettingChanged;
         QualityChance.SettingChanged += OnServerSettingChanged;
         UncommonQualityWeight.SettingChanged += OnServerSettingChanged;
         RareQualityWeight.SettingChanged += OnServerSettingChanged;
@@ -153,12 +134,6 @@ internal static class ConfigState
         RerollRefreshOnLevel.SettingChanged += OnServerSettingChanged;
         RerollRefreshEveryNLevels.SettingChanged += OnServerSettingChanged;
         ItemChoicesEveryNLevels.SettingChanged += OnServerSettingChanged;
-        PreserveChests.SettingChanged += OnServerSettingChanged;
-        PreservePrinters.SettingChanged += OnServerSettingChanged;
-        PreserveShrines.SettingChanged += OnServerSettingChanged;
-        PreserveShops.SettingChanged += OnServerSettingChanged;
-        PreserveScrappers.SettingChanged += OnServerSettingChanged;
-        PreserveCleansePools.SettingChanged += OnServerSettingChanged;
         InteractableCreditMultiplier.SettingChanged += OnServerSettingChanged;
         XpCurve.SettingChanged += OnServerSettingChanged;
         StartingXp.SettingChanged += OnServerSettingChanged;
@@ -167,8 +142,7 @@ internal static class ConfigState
 
     private static void UnsubscribeServerEntries()
     {
-        EnableQualityIntegration.SettingChanged -= OnServerSettingChanged;
-        AllowQualityChests.SettingChanged -= OnServerSettingChanged;
+        RemoveQualityInteractables.SettingChanged -= OnServerSettingChanged;
         QualityChance.SettingChanged -= OnServerSettingChanged;
         UncommonQualityWeight.SettingChanged -= OnServerSettingChanged;
         RareQualityWeight.SettingChanged -= OnServerSettingChanged;
@@ -180,12 +154,6 @@ internal static class ConfigState
         RerollRefreshOnLevel.SettingChanged -= OnServerSettingChanged;
         RerollRefreshEveryNLevels.SettingChanged -= OnServerSettingChanged;
         ItemChoicesEveryNLevels.SettingChanged -= OnServerSettingChanged;
-        PreserveChests.SettingChanged -= OnServerSettingChanged;
-        PreservePrinters.SettingChanged -= OnServerSettingChanged;
-        PreserveShrines.SettingChanged -= OnServerSettingChanged;
-        PreserveShops.SettingChanged -= OnServerSettingChanged;
-        PreserveScrappers.SettingChanged -= OnServerSettingChanged;
-        PreserveCleansePools.SettingChanged -= OnServerSettingChanged;
         InteractableCreditMultiplier.SettingChanged -= OnServerSettingChanged;
         XpCurve.SettingChanged -= OnServerSettingChanged;
         StartingXp.SettingChanged -= OnServerSettingChanged;
@@ -227,7 +195,7 @@ internal static class ConfigState
     internal sealed class SyncFixConfig : INetMessage
     {
         private bool _enableQuality;
-        private bool _allowQualityChests;
+        private bool _removeQualityInteractables;
         private float _qualityChance;
         private float _uncommon;
         private float _rare;
@@ -239,12 +207,6 @@ internal static class ConfigState
         private int _rerollMode;
         private int _rerollEvery;
         private int _choicesEvery;
-        private bool _keepChests;
-        private bool _keepPrinters;
-        private bool _keepShrines;
-        private bool _keepShops;
-        private bool _keepScrappers;
-        private bool _keepCleansePools;
         private float _creditMultiplier;
         private int _xpCurve;
         private float _startingXp;
@@ -252,10 +214,10 @@ internal static class ConfigState
 
         public SyncFixConfig() { }
 
-        public SyncFixConfig(bool _) 
+        public SyncFixConfig(bool _)
         {
             _enableQuality = EnableQualityIntegration.Value;
-            _allowQualityChests = AllowQualityChests.Value;
+            _removeQualityInteractables = RemoveQualityInteractables.Value;
             _qualityChance = QualityChance.Value;
             _uncommon = UncommonQualityWeight.Value;
             _rare = RareQualityWeight.Value;
@@ -267,12 +229,6 @@ internal static class ConfigState
             _rerollMode = (int)RerollRefreshOnLevel.Value;
             _rerollEvery = RerollRefreshEveryNLevels.Value;
             _choicesEvery = ItemChoicesEveryNLevels.Value;
-            _keepChests = PreserveChests.Value;
-            _keepPrinters = PreservePrinters.Value;
-            _keepShrines = PreserveShrines.Value;
-            _keepShops = PreserveShops.Value;
-            _keepScrappers = PreserveScrappers.Value;
-            _keepCleansePools = PreserveCleansePools.Value;
             _creditMultiplier = InteractableCreditMultiplier.Value;
             _xpCurve = (int)XpCurve.Value;
             _startingXp = StartingXp.Value;
@@ -282,7 +238,7 @@ internal static class ConfigState
         public void Serialize(NetworkWriter writer)
         {
             writer.Write(_enableQuality);
-            writer.Write(_allowQualityChests);
+            writer.Write(_removeQualityInteractables);
             writer.Write(_qualityChance);
             writer.Write(_uncommon);
             writer.Write(_rare);
@@ -294,12 +250,6 @@ internal static class ConfigState
             writer.Write(_rerollMode);
             writer.Write(_rerollEvery);
             writer.Write(_choicesEvery);
-            writer.Write(_keepChests);
-            writer.Write(_keepPrinters);
-            writer.Write(_keepShrines);
-            writer.Write(_keepShops);
-            writer.Write(_keepScrappers);
-            writer.Write(_keepCleansePools);
             writer.Write(_creditMultiplier);
             writer.Write(_xpCurve);
             writer.Write(_startingXp);
@@ -309,7 +259,7 @@ internal static class ConfigState
         public void Deserialize(NetworkReader reader)
         {
             _enableQuality = reader.ReadBoolean();
-            _allowQualityChests = reader.ReadBoolean();
+            _removeQualityInteractables = reader.ReadBoolean();
             _qualityChance = reader.ReadSingle();
             _uncommon = reader.ReadSingle();
             _rare = reader.ReadSingle();
@@ -321,12 +271,6 @@ internal static class ConfigState
             _rerollMode = reader.ReadInt32();
             _rerollEvery = reader.ReadInt32();
             _choicesEvery = reader.ReadInt32();
-            _keepChests = reader.ReadBoolean();
-            _keepPrinters = reader.ReadBoolean();
-            _keepShrines = reader.ReadBoolean();
-            _keepShops = reader.ReadBoolean();
-            _keepScrappers = reader.ReadBoolean();
-            _keepCleansePools = reader.ReadBoolean();
             _creditMultiplier = reader.ReadSingle();
             _xpCurve = reader.ReadInt32();
             _startingXp = reader.ReadSingle();
@@ -348,7 +292,7 @@ internal static class ConfigState
             object value = entry.Definition.Key switch
             {
                 "Enable Quality Integration" => _overrides._enableQuality,
-                "Allow Quality Chests" => _overrides._allowQualityChests,
+                "Remove Quality Interactables" => _overrides._removeQualityInteractables,
                 "Quality Chance" => _overrides._qualityChance,
                 "Uncommon Quality Weight" => _overrides._uncommon,
                 "Rare Quality Weight" => _overrides._rare,
@@ -358,13 +302,6 @@ internal static class ConfigState
                 "Guaranteed Quality Choice Count" => _overrides._guaranteedQualityChoices,
                 "Reroll Refresh On Level" => (RerollRefreshMode)_overrides._rerollMode,
                 "Reroll Refresh Every N Levels" => _overrides._rerollEvery,
-                "Item Choices Every N Levels" => _overrides._choicesEvery,
-                "Keep Chests" => _overrides._keepChests,
-                "Keep Printers" => _overrides._keepPrinters,
-                "Keep Shrines" => _overrides._keepShrines,
-                "Keep Shops" => _overrides._keepShops,
-                "Keep Scrappers" => _overrides._keepScrappers,
-                "Keep Cleansing Pools" => _overrides._keepCleansePools,
                 "Interactable Credit Multiplier" => _overrides._creditMultiplier,
                 "XP Curve" => (XpCurveMode)_overrides._xpCurve,
                 "Starting XP" => _overrides._startingXp,

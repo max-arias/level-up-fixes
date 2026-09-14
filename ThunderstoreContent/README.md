@@ -56,7 +56,7 @@ All settings are server/host settings in the `Server` section of the BepInEx con
 | Guaranteed Quality Every N Levels | `5` | Queue a guaranteed quality choice set. Set to `0` to disable. |
 | Guaranteed Quality Choice Count | `3` | Number of guaranteed quality choices. |
 | Uncommon / Rare / Epic / Legendary Quality Weight | `70 / 20 / 8 / 2` | Relative quality-tier weights. |
-| Allow Quality Chests | `false` | Keep Item Qualities chest and printer sources when LevelUpChoices removes item sources. |
+| Remove Quality Interactables | `true` | Remove Item Qualities chests and printers when LevelUpChoices removes item sources. |
 
 Host settings are authoritative in multiplayer and synchronize to connected clients when a run starts or settings change.
 

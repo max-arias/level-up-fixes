@@ -82,7 +82,6 @@ internal static class IntegrationPatches
     private static readonly Dictionary<NetworkInstanceId, int> BeforeSelectionTokens = new();
     private static readonly Dictionary<NetworkInstanceId, int> BeforeOptionCounts = new();
     private static readonly Dictionary<NetworkInstanceId, int> PendingGuaranteedQualityBatches = new();
-    private static readonly HashSet<string> PreservedSpawnNames = new(StringComparer.OrdinalIgnoreCase);
     private static ItemIndex _rerollBaseItem = ItemIndex.None;
     private static ItemIndex _rerollOriginalItem = ItemIndex.None;
     private static Run _pendingQualityRun;
@@ -179,8 +178,7 @@ internal static class IntegrationPatches
         if (sourceHook != null && SpawnBlacklistField != null)
         {
             harmony.Patch(sourceHook,
-                prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(InteractablePrefix)),
-                postfix: new HarmonyMethod(typeof(IntegrationPatches), nameof(InteractablePostfix)));
+                prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(InteractablePrefix)));
         }
         else
             Log.Warning("Interactable source seam is unsupported; per-category controls disabled.");
@@ -443,39 +441,22 @@ internal static class IntegrationPatches
 
     private static void InteractablePrefix()
     {
-        PreservedSpawnNames.Clear();
-        if (!TryGetSpawnBlacklist(out HashSet<string> blacklist))
+        if (!TryGetSpawnBlacklist(out HashSet<string> blacklist) || !QualityRuntime.IsPluginPresent)
             return;
-        foreach (string name in ItemSourceGroups.GetNamesToPreserve())
-        {
-            if (blacklist.Remove(name))
-                PreservedSpawnNames.Add(name);
-        }
-        if (QualityRuntime.IsPluginPresent)
-        {
-            foreach (string name in ItemSourceGroups.QualityChests)
-                SetQualityInteractableAllowed(blacklist, name);
-            foreach (string name in ItemSourceGroups.QualityPrinters)
-                SetQualityInteractableAllowed(blacklist, name);
-        }
+        foreach (string name in ItemSourceGroups.QualityChests)
+            SetQualityInteractableAllowed(blacklist, name);
+        foreach (string name in ItemSourceGroups.QualityPrinters)
+            SetQualityInteractableAllowed(blacklist, name);
     }
 
     private static void SetQualityInteractableAllowed(HashSet<string> blacklist, string name)
     {
-        if (ConfigState.AllowQualityChestsValue)
-            blacklist.Remove(name);
-        else
+        if (ConfigState.RemoveQualityInteractablesValue)
             blacklist.Add(name);
+        else
+            blacklist.Remove(name);
     }
 
-    private static void InteractablePostfix()
-    {
-        if (!TryGetSpawnBlacklist(out HashSet<string> blacklist))
-            return;
-        foreach (string name in PreservedSpawnNames)
-            blacklist.Add(name);
-        PreservedSpawnNames.Clear();
-    }
 
     private static void InteractableCreditPrefix(SceneDirector __instance)
     {
@@ -628,18 +609,10 @@ internal static class ItemSourceGroups
     {
         if (string.IsNullOrWhiteSpace(name))
             return false;
-        if (ConfigState.PreserveChests.Value && Contains(Chests, name) ||
-            ConfigState.PreservePrinters.Value && Contains(Printers, name) ||
-            ConfigState.PreserveShrines.Value && Contains(Shrines, name) ||
-            ConfigState.PreserveShops.Value && Contains(Shops, name) ||
-            ConfigState.PreserveScrappers.Value && Contains(Scrappers, name))
-            return false;
-        if (ConfigState.PreserveCleansePools.Value && Contains(Shrines, name) &&
-            name.StartsWith("iscshrinecleanse", StringComparison.OrdinalIgnoreCase))
-            return false;
         return Contains(Chests, name) || Contains(Printers, name) || Contains(Shrines, name) ||
             Contains(Shops, name) || Contains(Scrappers, name) ||
-            QualityRuntime.IsPluginPresent && !ConfigState.AllowQualityChestsValue &&
+            ConfigState.RemoveQualityInteractablesValue &&
+            QualityRuntime.IsPluginPresent &&
             (Contains(QualityChests, name) || Contains(QualityPrinters, name));
     }
 
@@ -653,13 +626,4 @@ internal static class ItemSourceGroups
         return false;
     }
 
-    internal static IEnumerable<string> GetNamesToPreserve()
-    {
-        if (ConfigState.PreserveChests.Value) foreach (string name in Chests) yield return name;
-        if (ConfigState.PreservePrinters.Value) foreach (string name in Printers) yield return name;
-        if (ConfigState.PreserveShrines.Value) foreach (string name in Shrines) yield return name;
-        if (ConfigState.PreserveShops.Value) foreach (string name in Shops) yield return name;
-        if (ConfigState.PreserveScrappers.Value) foreach (string name in Scrappers) yield return name;
-        if (ConfigState.PreserveCleansePools.Value) yield return "iscshrinecleanse";
-    }
 }
