@@ -11,7 +11,7 @@ Use this checklist when playing with LevelUpChoicesFixes. The host should instal
 | Higher-rarity quality items | Continue selecting items and watch `UsedTokens` increase | Guaranteed quality choices use the normal LevelUpChoices rarity progression, so green and red base items become more likely later. |
 | Quality rarity distribution | Adjust the four quality weights | The weights are relative and normalized over quality variants that exist for the selected item. |
 | Quality chests and printers | Adjust `Remove Quality Interactables` and LevelUpChoices' item-source removal setting | By default, quality chest and printer sources are removed with other item sources. |
-| Multiplayer settings | Change settings on the host and start or continue a run | The host's quality, schedule, blacklist, interactable, and XP settings apply to all players. |
+| Multiplayer settings | Change quality, interactable, blacklist, and XP settings on the host and start or continue a run | The host's quality, blacklist, interactable, and XP settings apply to all players. |
 | Quality plugin absent | Start a run without Item Qualities installed | LevelUpChoicesFixes disables only quality features; ordinary LevelUpChoices choices continue to work. |
 | Menu or pause cleanup | Close the choice screen through Escape, the pause menu, or by ending a run | The choice screen closes and the game resumes normally. |
 

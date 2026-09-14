@@ -8,12 +8,6 @@ using UnityEngine.Networking;
 
 namespace TeamTayne.LevelUpChoicesFixes;
 
-internal enum RerollRefreshMode
-{
-    Off,
-    ToStartingValue,
-    AddOne
-}
 
 internal enum XpCurveMode
 {
@@ -37,9 +31,6 @@ internal static class ConfigState
     internal static ConfigEntry<int> GuaranteedQualityEveryNLevels { get; private set; }
     internal static ConfigEntry<int> GuaranteedQualityChoiceCount { get; private set; }
     internal static ConfigEntry<string> ItemBlacklist { get; private set; }
-    internal static ConfigEntry<RerollRefreshMode> RerollRefreshOnLevel { get; private set; }
-    internal static ConfigEntry<int> RerollRefreshEveryNLevels { get; private set; }
-    internal static ConfigEntry<int> ItemChoicesEveryNLevels { get; private set; }
     internal static ConfigEntry<float> InteractableCreditMultiplier { get; private set; }
     internal static ConfigEntry<XpCurveMode> XpCurve { get; private set; }
     internal static ConfigEntry<float> StartingXp { get; private set; }
@@ -58,9 +49,6 @@ internal static class ConfigState
     internal static int GuaranteedQualityEveryValue => Math.Max(0, Value(GuaranteedQualityEveryNLevels));
     internal static int GuaranteedQualityChoicesValue => Math.Max(1, Value(GuaranteedQualityChoiceCount));
     internal static string ItemBlacklistValue => _hasServerOverride ? _serverBlacklist : ItemBlacklist.Value;
-    internal static RerollRefreshMode RerollRefreshModeValue => Value(RerollRefreshOnLevel);
-    internal static int RerollRefreshEveryValue => Math.Max(1, Value(RerollRefreshEveryNLevels));
-    internal static int ChoicesEveryValue => Math.Max(1, Value(ItemChoicesEveryNLevels));
     internal static float InteractableCreditMultiplierValue => Math.Max(0f, Value(InteractableCreditMultiplier));
 
     internal static void Initialize(ConfigFile config)
@@ -89,12 +77,6 @@ internal static class ConfigState
                 new AcceptableValueRange<int>(1, 10)));
         ItemBlacklist = config.Bind(ServerSection, "Item Blacklist", "DefensiveMicrobots",
             "Comma-separated item names that are removed from every LevelUpChoices player pool.");
-        RerollRefreshOnLevel = config.Bind(ServerSection, "Reroll Refresh On Level", RerollRefreshMode.Off,
-            "At the configured interval, do nothing, reset rerolls to the starting value, or add one reroll.");
-        RerollRefreshEveryNLevels = config.Bind(ServerSection, "Reroll Refresh Every N Levels", 1,
-            "Level interval used by Reroll Refresh On Level.");
-        ItemChoicesEveryNLevels = config.Bind(ServerSection, "Item Choices Every N Levels", 1,
-            "Grant a level-up choice token every N levels. Existing unspent choices are preserved.");
         InteractableCreditMultiplier = config.Bind(ServerSection, "Interactable Credit Multiplier", 1f,
             "Multiplier applied to the original interactable credit budget; 1 leaves it unchanged.");
         XpCurve = config.Bind(ServerSection, "XP Curve", XpCurveMode.Exponential,
@@ -131,9 +113,6 @@ internal static class ConfigState
         GuaranteedQualityEveryNLevels.SettingChanged += OnServerSettingChanged;
         GuaranteedQualityChoiceCount.SettingChanged += OnServerSettingChanged;
         ItemBlacklist.SettingChanged += OnServerSettingChanged;
-        RerollRefreshOnLevel.SettingChanged += OnServerSettingChanged;
-        RerollRefreshEveryNLevels.SettingChanged += OnServerSettingChanged;
-        ItemChoicesEveryNLevels.SettingChanged += OnServerSettingChanged;
         InteractableCreditMultiplier.SettingChanged += OnServerSettingChanged;
         XpCurve.SettingChanged += OnServerSettingChanged;
         StartingXp.SettingChanged += OnServerSettingChanged;
@@ -151,9 +130,6 @@ internal static class ConfigState
         GuaranteedQualityEveryNLevels.SettingChanged -= OnServerSettingChanged;
         GuaranteedQualityChoiceCount.SettingChanged -= OnServerSettingChanged;
         ItemBlacklist.SettingChanged -= OnServerSettingChanged;
-        RerollRefreshOnLevel.SettingChanged -= OnServerSettingChanged;
-        RerollRefreshEveryNLevels.SettingChanged -= OnServerSettingChanged;
-        ItemChoicesEveryNLevels.SettingChanged -= OnServerSettingChanged;
         InteractableCreditMultiplier.SettingChanged -= OnServerSettingChanged;
         XpCurve.SettingChanged -= OnServerSettingChanged;
         StartingXp.SettingChanged -= OnServerSettingChanged;
@@ -204,9 +180,6 @@ internal static class ConfigState
         private int _guaranteedQualityEvery;
         private int _guaranteedQualityChoices;
         private string _blacklist;
-        private int _rerollMode;
-        private int _rerollEvery;
-        private int _choicesEvery;
         private float _creditMultiplier;
         private int _xpCurve;
         private float _startingXp;
@@ -226,9 +199,6 @@ internal static class ConfigState
             _guaranteedQualityEvery = GuaranteedQualityEveryNLevels.Value;
             _guaranteedQualityChoices = GuaranteedQualityChoiceCount.Value;
             _blacklist = ItemBlacklist.Value ?? string.Empty;
-            _rerollMode = (int)RerollRefreshOnLevel.Value;
-            _rerollEvery = RerollRefreshEveryNLevels.Value;
-            _choicesEvery = ItemChoicesEveryNLevels.Value;
             _creditMultiplier = InteractableCreditMultiplier.Value;
             _xpCurve = (int)XpCurve.Value;
             _startingXp = StartingXp.Value;
@@ -247,9 +217,6 @@ internal static class ConfigState
             writer.Write(_guaranteedQualityEvery);
             writer.Write(_guaranteedQualityChoices);
             writer.Write(_blacklist ?? string.Empty);
-            writer.Write(_rerollMode);
-            writer.Write(_rerollEvery);
-            writer.Write(_choicesEvery);
             writer.Write(_creditMultiplier);
             writer.Write(_xpCurve);
             writer.Write(_startingXp);
@@ -268,9 +235,6 @@ internal static class ConfigState
             _guaranteedQualityEvery = reader.ReadInt32();
             _guaranteedQualityChoices = reader.ReadInt32();
             _blacklist = reader.ReadString();
-            _rerollMode = reader.ReadInt32();
-            _rerollEvery = reader.ReadInt32();
-            _choicesEvery = reader.ReadInt32();
             _creditMultiplier = reader.ReadSingle();
             _xpCurve = reader.ReadInt32();
             _startingXp = reader.ReadSingle();
@@ -300,8 +264,6 @@ internal static class ConfigState
                 "Legendary Quality Weight" => _overrides._legendary,
                 "Guaranteed Quality Every N Levels" => _overrides._guaranteedQualityEvery,
                 "Guaranteed Quality Choice Count" => _overrides._guaranteedQualityChoices,
-                "Reroll Refresh On Level" => (RerollRefreshMode)_overrides._rerollMode,
-                "Reroll Refresh Every N Levels" => _overrides._rerollEvery,
                 "Interactable Credit Multiplier" => _overrides._creditMultiplier,
                 "XP Curve" => (XpCurveMode)_overrides._xpCurve,
                 "Starting XP" => _overrides._startingXp,

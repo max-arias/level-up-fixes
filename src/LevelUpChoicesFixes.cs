@@ -71,16 +71,12 @@ internal static class IntegrationPatches
     private static readonly FieldInfo CurrentOptionsField = AccessTools.Field(typeof(LevelUpChoices.LevelUpManager.PlayerState), "CurrentOptions");
     private static readonly FieldInfo CurrentSynergiesField = AccessTools.Field(typeof(LevelUpChoices.LevelUpManager.PlayerState), "CurrentSynergies");
     private static readonly FieldInfo SelectionTokensField = AccessTools.Field(typeof(LevelUpChoices.LevelUpManager.PlayerState), "SelectionTokens");
-    private static readonly FieldInfo RerollTokensField = AccessTools.Field(typeof(LevelUpChoices.LevelUpManager.PlayerState), "RerollTokens");
     private static readonly FieldInfo DropTableTiersField = AccessTools.Field(typeof(LevelUpChoices.PlayerDropTable), "_tiers");
     private static readonly FieldInfo DropTableWeightsField = AccessTools.Field(typeof(LevelUpChoices.PlayerDropTable), "_weights");
     private static readonly FieldInfo DropTableTierCountsField = AccessTools.Field(typeof(LevelUpChoices.PlayerDropTable), "_tierCounts");
     private static readonly FieldInfo DropTableLastTokensField = AccessTools.Field(typeof(LevelUpChoices.PlayerDropTable), "_lastCalculatedTokens");
     private static readonly FieldInfo SpawnBlacklistField = AccessTools.Field(typeof(LevelUpChoices.InteractableSpawnHook), "BlacklistedSpawns");
     private static readonly FieldInfo InteractableCreditField = AccessTools.Field(typeof(SceneDirector), "interactableCredit");
-
-    private static readonly Dictionary<NetworkInstanceId, int> BeforeSelectionTokens = new();
-    private static readonly Dictionary<NetworkInstanceId, int> BeforeOptionCounts = new();
     private static readonly Dictionary<NetworkInstanceId, int> PendingGuaranteedQualityBatches = new();
     private static ItemIndex _rerollBaseItem = ItemIndex.None;
     private static ItemIndex _rerollOriginalItem = ItemIndex.None;
@@ -153,9 +149,7 @@ internal static class IntegrationPatches
             Log.Warning("LevelUpManager.OnLevelUp seam is unsupported; schedule and level reroll refresh disabled.");
             return;
         }
-        harmony.Patch(method,
-            prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(OnLevelUpPrefix)),
-            postfix: new HarmonyMethod(typeof(IntegrationPatches), nameof(OnLevelUpPostfix)));
+        harmony.Patch(method, prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(OnLevelUpPrefix)));
     }
 
     private static void PatchPause(Harmony harmony)
@@ -195,6 +189,11 @@ internal static class IntegrationPatches
     }
 
     private static void InteractableCategoriesPrefix()
+    {
+        FilterInteractableCategories();
+    }
+
+    private static void FilterInteractableCategories()
     {
         if (!LevelUpChoices.ModConfig.IsModEnabled || !LevelUpChoices.ModConfig.EnableInteractableRemoval.Value ||
             !ClassicStageInfo.instance?.interactableCategories)
@@ -343,15 +342,6 @@ internal static class IntegrationPatches
     private static void OnLevelUpPrefix(LevelUpChoices.LevelUpManager __instance, uint newLevel)
     {
         QueueGuaranteedQualityBatch(newLevel);
-        BeforeSelectionTokens.Clear();
-        BeforeOptionCounts.Clear();
-        foreach (DictionaryEntry entry in EnumerateStates(__instance))
-        {
-            NetworkInstanceId id = (NetworkInstanceId)entry.Key;
-            object state = entry.Value;
-            BeforeSelectionTokens[id] = (int)SelectionTokensField.GetValue(state);
-            BeforeOptionCounts[id] = ((IList)CurrentOptionsField.GetValue(state)).Count;
-        }
     }
 
     private static void QueueGuaranteedQualityBatch(uint newLevel)
@@ -378,38 +368,6 @@ internal static class IntegrationPatches
         }
     }
 
-    private static void OnLevelUpPostfix(LevelUpChoices.LevelUpManager __instance, uint newLevel)
-    {
-        bool grantChoice = newLevel % (uint)ConfigState.ChoicesEveryValue == 0;
-        bool refreshReroll = ConfigState.RerollRefreshModeValue != RerollRefreshMode.Off &&
-            newLevel % (uint)ConfigState.RerollRefreshEveryValue == 0;
-
-        foreach (DictionaryEntry entry in EnumerateStates(__instance))
-        {
-            NetworkInstanceId id = (NetworkInstanceId)entry.Key;
-            object state = entry.Value;
-            int before = BeforeSelectionTokens.TryGetValue(id, out int oldSelection) ? oldSelection : 0;
-            int current = (int)SelectionTokensField.GetValue(state);
-            IList options = (IList)CurrentOptionsField.GetValue(state);
-            if (!grantChoice && current > before)
-            {
-                SelectionTokensField.SetValue(state, before);
-                if (before == 0 && BeforeOptionCounts.TryGetValue(id, out int oldOptions) && oldOptions == 0)
-                    options.Clear();
-            }
-            if (refreshReroll)
-            {
-                if (ConfigState.RerollRefreshModeValue == RerollRefreshMode.ToStartingValue)
-                    RerollTokensField.SetValue(state, GetStartingRerollTokens());
-                else
-                    RerollTokensField.SetValue(state, (int)RerollTokensField.GetValue(state) + 1);
-            }
-            SyncState(__instance, id);
-            SyncOptions(__instance, id);
-        }
-        BeforeSelectionTokens.Clear();
-        BeforeOptionCounts.Clear();
-    }
 
     private static void PauseScreenEnablePrefix()
     {
@@ -441,7 +399,9 @@ internal static class IntegrationPatches
 
     private static void InteractablePrefix()
     {
-        if (!TryGetSpawnBlacklist(out HashSet<string> blacklist) || !QualityRuntime.IsPluginPresent)
+        FilterInteractableCategories();
+        if (!QualityRuntime.IsPluginPresent ||
+            !TryGetSpawnBlacklist(out HashSet<string> blacklist))
             return;
         foreach (string name in ItemSourceGroups.QualityChests)
             SetQualityInteractableAllowed(blacklist, name);
@@ -552,10 +512,6 @@ internal static class IntegrationPatches
         manager.UpdateAvailableItems(pickups, synergies);
     }
 
-    private static int GetStartingRerollTokens()
-    {
-        return LevelUpChoices.ModConfig.StartingRerollTokens?.Value ?? 0;
-    }
 
     private static float GetPlayerLuck(NetworkInstanceId netId)
     {

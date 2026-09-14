@@ -111,27 +111,6 @@ internal static class RiskOfOptionsIntegration
             checkIfDisabled = ServerOptionDisabled
         }));
 
-        ModSettingsManager.AddOption(new ChoiceOption(ConfigState.RerollRefreshOnLevel, new ChoiceConfig
-        {
-            category = "Schedule",
-            checkIfDisabled = ServerOptionDisabled
-        }));
-        ModSettingsManager.AddOption(new IntSliderOption(ConfigState.RerollRefreshEveryNLevels, new IntSliderConfig
-        {
-            category = "Schedule",
-            min = 1,
-            max = 100,
-            formatString = "{0}",
-            checkIfDisabled = ServerOptionDisabled
-        }));
-        ModSettingsManager.AddOption(new IntSliderOption(ConfigState.ItemChoicesEveryNLevels, new IntSliderConfig
-        {
-            category = "Schedule",
-            min = 1,
-            max = 100,
-            formatString = "{0}",
-            checkIfDisabled = ServerOptionDisabled
-        }));
 
         ModSettingsManager.AddOption(new StepSliderOption(ConfigState.InteractableCreditMultiplier, new StepSliderConfig
         {

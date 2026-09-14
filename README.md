@@ -53,7 +53,7 @@ Host settings are authoritative in multiplayer and synchronize to connected clie
 
 - Prevents quality variants from creating duplicate-item reroll and banish problems.
 - Recovers cleanly when the choice menu is closed through the pause screen or when a run ends.
-- Adds configurable reroll refresh, choice schedules, item blacklists, interactable preservation, interactable credit scaling, and XP curves.
+- Adds configurable item blacklists, interactable preservation, interactable credit scaling, and XP curves.
 
 ## Probability chart
 
