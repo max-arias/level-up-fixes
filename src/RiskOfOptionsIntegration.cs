@@ -99,7 +99,7 @@ internal static class RiskOfOptionsIntegration
             category = "Quality",
             min = 0,
             max = 100,
-            formatString = "Every {0} level(s); 0 = off",
+            formatString = "{0}",
             checkIfDisabled = ServerOptionDisabled
         }));
         ModSettingsManager.AddOption(new IntSliderOption(ConfigState.GuaranteedQualityChoiceCount, new IntSliderConfig
@@ -107,7 +107,7 @@ internal static class RiskOfOptionsIntegration
             category = "Quality",
             min = 1,
             max = 10,
-            formatString = "{0} guaranteed choice(s)",
+            formatString = "{0}",
             checkIfDisabled = ServerOptionDisabled
         }));
 
@@ -121,7 +121,7 @@ internal static class RiskOfOptionsIntegration
             category = "Schedule",
             min = 1,
             max = 100,
-            formatString = "Every {0} level(s)",
+            formatString = "{0}",
             checkIfDisabled = ServerOptionDisabled
         }));
         ModSettingsManager.AddOption(new IntSliderOption(ConfigState.ItemChoicesEveryNLevels, new IntSliderConfig
@@ -129,7 +129,7 @@ internal static class RiskOfOptionsIntegration
             category = "Schedule",
             min = 1,
             max = 100,
-            formatString = "Every {0} level(s)",
+            formatString = "{0}",
             checkIfDisabled = ServerOptionDisabled
         }));
 
