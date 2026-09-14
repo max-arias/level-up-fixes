@@ -34,4 +34,8 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\ThunderstoreContent\icon.png"
+                      LogicalName="TeamTayne.LevelUpChoicesFixes.icon.png" />
+  </ItemGroup>
 </Project>

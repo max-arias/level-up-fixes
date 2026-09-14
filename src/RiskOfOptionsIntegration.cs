@@ -1,5 +1,8 @@
 using System;
+using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 using BepInEx;
 using BepInEx.Bootstrap;
 using RiskOfOptions;
@@ -11,6 +14,7 @@ namespace TeamTayne.LevelUpChoicesFixes;
 
 internal static class RiskOfOptionsIntegration
 {
+    private const string IconResourceName = "TeamTayne.LevelUpChoicesFixes.icon.png";
     internal const string PluginGUID = "com.rune580.riskofoptions";
 
     internal static void TryRegister()
@@ -34,6 +38,11 @@ internal static class RiskOfOptionsIntegration
     {
         ModSettingsManager.SetModDescription(
             "LevelUpChoices remains the sole level-up system. Host/server settings are authoritative during multiplayer runs.");
+        Sprite icon = LoadIcon();
+        if (icon != null)
+            ModSettingsManager.SetModIcon(icon);
+        else
+            Log.Warning("Risk of Options icon resource was not found or could not be decoded.");
 
         ModSettingsManager.AddOption(new CheckBoxOption(ConfigState.EnableQualityIntegration, new CheckBoxConfig
         {
@@ -147,6 +156,34 @@ internal static class RiskOfOptionsIntegration
             FormatString = "{0:0.0}x",
             checkIfDisabled = ServerOptionDisabled
         }));
+    }
+
+    private static Sprite LoadIcon()
+    {
+        Assembly assembly = typeof(RiskOfOptionsIntegration).Assembly;
+        using (Stream stream = assembly.GetManifestResourceStream(IconResourceName))
+        {
+            if (stream == null)
+                return null;
+
+            using (MemoryStream buffer = new MemoryStream())
+            {
+                stream.CopyTo(buffer);
+                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                if (!ImageConversion.LoadImage(texture, buffer.ToArray(), true))
+                {
+                    UnityEngine.Object.Destroy(texture);
+                    return null;
+                }
+
+                texture.name = "LevelUpChoicesFixesIcon";
+                return Sprite.Create(
+                    texture,
+                    new Rect(0f, 0f, texture.width, texture.height),
+                    new Vector2(0.5f, 0.5f),
+                    100f);
+            }
+        }
     }
 
     private static bool ServerOptionDisabled()
