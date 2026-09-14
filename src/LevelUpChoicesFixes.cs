@@ -78,12 +78,6 @@ internal static class IntegrationPatches
     private static readonly FieldInfo DropTableLastTokensField = AccessTools.Field(typeof(LevelUpChoices.PlayerDropTable), "_lastCalculatedTokens");
     private static readonly FieldInfo SpawnBlacklistField = AccessTools.Field(typeof(LevelUpChoices.InteractableSpawnHook), "BlacklistedSpawns");
     private static readonly FieldInfo InteractableCreditField = AccessTools.Field(typeof(SceneDirector), "interactableCredit");
-    private static readonly FieldInfo NotificationPanelField =
-        AccessTools.Field(typeof(LevelUpChoices.UI.Components.NotificationPanelComponent), "_panel");
-    private static readonly FieldInfo CurrentOptionsUiField =
-        AccessTools.Field(typeof(LevelUpChoices.UI.ItemSelectUI), "currentOptions");
-    private static readonly FieldInfo CurrentSynergiesUiField =
-        AccessTools.Field(typeof(LevelUpChoices.UI.ItemSelectUI), "currentSynergies");
 
     private static readonly Dictionary<NetworkInstanceId, int> BeforeSelectionTokens = new();
     private static readonly Dictionary<NetworkInstanceId, int> BeforeOptionCounts = new();
@@ -98,7 +92,6 @@ internal static class IntegrationPatches
         PatchRoll(harmony);
         PatchRerollAndBanish(harmony);
         PatchLevelSchedule(harmony);
-        PatchNotification(harmony);
         PatchPause(harmony);
         PatchExperience(harmony);
         QualityRuntime.TryInitialize();
@@ -164,54 +157,6 @@ internal static class IntegrationPatches
         harmony.Patch(method,
             prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(OnLevelUpPrefix)),
             postfix: new HarmonyMethod(typeof(IntegrationPatches), nameof(OnLevelUpPostfix)));
-    }
-
-    private static void PatchNotification(Harmony harmony)
-    {
-        MethodInfo method = AccessTools.Method(
-            typeof(LevelUpChoices.UI.Components.NotificationPanelComponent),
-            "Show",
-            new[] { typeof(int), typeof(string) });
-        if (HasParameters(method, typeof(int), typeof(string)))
-            harmony.Patch(method, postfix: new HarmonyMethod(typeof(IntegrationPatches), nameof(NotificationShowPostfix)));
-        else
-            Log.Warning("NotificationPanelComponent.Show seam is unsupported; clickable level-up notification disabled.");
-    }
-
-    private static void NotificationShowPostfix(
-        LevelUpChoices.UI.Components.NotificationPanelComponent __instance)
-    {
-        GameObject panel = NotificationPanelField?.GetValue(__instance) as GameObject;
-        if (!panel || panel.GetComponent<Button>() != null)
-            return;
-
-        Button button = panel.AddComponent<Button>();
-        button.targetGraphic = panel.GetComponent<Image>();
-        ColorBlock colors = button.colors;
-        colors.normalColor = Color.white;
-        colors.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f);
-        colors.pressedColor = new Color(0.75f, 0.75f, 0.75f, 1f);
-        colors.fadeDuration = 0.1f;
-        button.colors = colors;
-        button.onClick.AddListener(OpenChoicesFromNotification);
-
-        if (panel.GetComponent<RoR2.UI.CursorOpener>() == null)
-            panel.AddComponent<RoR2.UI.CursorOpener>();
-    }
-
-    private static void OpenChoicesFromNotification()
-    {
-        LevelUpChoices.UI.ItemSelectUI ui = LevelUpChoices.UI.ItemSelectUI.Instance;
-        LevelUpChoices.LevelUpManager manager = LevelUpChoices.LevelUpManager.Instance;
-        if (!ui || !manager || manager.AvailableTokens <= 0)
-            return;
-
-        List<PickupIndex> options = CurrentOptionsUiField?.GetValue(ui) as List<PickupIndex>;
-        if (options == null || options.Count == 0)
-            return;
-
-        List<ItemIndex> synergies = CurrentSynergiesUiField?.GetValue(ui) as List<ItemIndex>;
-        ui.ShowChoices(options, synergies);
     }
 
     private static void PatchPause(Harmony harmony)

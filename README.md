@@ -13,7 +13,7 @@ Install the package with a Thunderstore-compatible mod manager. R2API Networking
 
 ## Opening the choice menu
 
-When the notification shows that you have unused tokens, click the notification panel to open the item choices. The existing toggle-menu key remains available as an alternative.
+Use the configured toggle-menu key to open or close the item choices when the notification shows that you have unused tokens.
 
 
 ## Quality integration
