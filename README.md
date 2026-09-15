@@ -70,6 +70,20 @@ Host settings are authoritative in multiplayer and synchronize to connected clie
 
 The repository includes a [quality chance chart](ThunderstoreContent/quality-chance-chart.svg) showing the default LevelUpChoices rarity progression alongside the 4% random quality rate, quality-tier weights, and the default guaranteed-quality cadence.
 
+## Development and releases
+
+Build locally with:
+
+```bash
+dotnet build src/LevelUpChoicesFixes.csproj --configuration Release
+python3 quality_chance_chart.py
+python3 scripts/package.py
+```
+
+Generated DLLs, PDBs, and ZIP packages are ignored by Git. Pushing a version tag matching
+`vMAJOR.MINOR.PATCH` runs the GitHub Actions release workflow and attaches the generated ZIP to a
+GitHub release.
+
 ## Support
 
 Report issues with the mod versions, configuration values, host/client setup, and relevant `BepInEx/LogOutput.log` messages:

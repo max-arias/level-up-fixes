@@ -3,6 +3,8 @@
 /luc/
 src/bin/
 src/obj/
+/build/*.dll
+/build/*.zip
 
 # Python cache
 __pycache__/

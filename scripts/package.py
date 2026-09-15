@@ -12,7 +12,6 @@ CONTENT = ROOT / "ThunderstoreContent"
 OUTPUT = ROOT / "src" / "bin" / "Release" / "netstandard2.1"
 DLL = OUTPUT / "LevelUpChoicesFixes.dll"
 PDB = OUTPUT / "LevelUpChoicesFixes.pdb"
-ARCHIVE = ROOT / "build" / "TeamTayne-LevelUpChoicesFixes-1.0.0.zip"
 
 
 def validate_manifest():
@@ -38,13 +37,14 @@ def validate_icon():
 
 
 def package():
-    validate_manifest()
+    data = validate_manifest()
+    archive = ROOT / "build" / f"TeamTayne-LevelUpChoicesFixes-{data['version_number']}.zip"
     validate_icon()
     for artifact in (DLL, PDB):
         if not artifact.is_file():
             raise SystemExit(f"missing build artifact: {artifact}; build the project before packaging")
-    if ARCHIVE.exists():
-        ARCHIVE.unlink()
+    if archive.exists():
+        archive.unlink()
     files = {
         "icon.png": CONTENT / "icon.png",
         "README.md": CONTENT / "README.md",
@@ -54,16 +54,16 @@ def package():
         "BepInEx/plugins/LevelUpChoicesFixes.dll": DLL,
         "BepInEx/plugins/LevelUpChoicesFixes.pdb": PDB,
     }
-    with zipfile.ZipFile(ARCHIVE, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+    with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as output:
         for name, path in files.items():
-            archive.write(path, name)
-    with zipfile.ZipFile(ARCHIVE) as archive:
-        names = set(archive.namelist())
+            output.write(path, name)
+    with zipfile.ZipFile(archive) as output:
+        names = set(output.namelist())
         assert {"icon.png", "README.md", "quality-chance-chart.svg", "manifest.json", "CHANGELOG.md"} <= names
         assert "LevelUpChoices.dll" not in " ".join(names)
         assert "ItemQualities.dll" not in " ".join(names)
         with tempfile.TemporaryDirectory(prefix="levelupchoicesfixes-profile-") as profile:
-            archive.extractall(profile)
+            output.extractall(profile)
             installed_dir = Path(profile) / "BepInEx/plugins"
             assert (installed_dir / DLL.name).read_bytes() == DLL.read_bytes()
             assert (installed_dir / PDB.name).read_bytes() == PDB.read_bytes()
