@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3
+
+- Restored Shrine of the Mountain, Halcyon Shrine, Altar of Gold, Shrine of Shaping, Shrine of the Woods, and the Collective Shrine of Combat.
+- Corrected the release packaging after the 1.0.2 shrine policy was changed; Collective Shrine of Combat is explicitly removed from LevelUpChoices' private blacklist before stage population.
+
 ## 1.0.2
 
 - Fixed item-source removal missing DLC3's Temporary Item Distributor and the equipment-less DLC3 drone scrapper.

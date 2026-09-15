@@ -1,6 +1,6 @@
 {
   "name": "LevelUpChoicesFixes",
-  "version_number": "1.0.2",
+  "version_number": "1.0.3",
   "website_url": "https://github.com/max-arias/level-up-fixes",
   "description": "Compatibility fixes and configurable integrations for karaeren.LevelUpChoices, including optional Risk of Options controls, Item Qualities, quality interactable filtering, safe rerolls, pause recovery, blacklists, and interactables.",
   "dependencies": [
