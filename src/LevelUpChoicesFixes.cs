@@ -25,7 +25,7 @@ public sealed class LevelUpChoicesFixes : BaseUnityPlugin
 {
     internal const string PluginGUID = "TeamTayne.LevelUpChoicesFixes";
     internal const string PluginName = "LevelUpChoicesFixes";
-    internal const string PluginVersion = "1.0.0";
+    internal const string PluginVersion = "1.0.1";
 
     internal const string ItemQualitiesGuid = "com.Gorakh.ItemQualities";
 

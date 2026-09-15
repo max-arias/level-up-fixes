@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- Fixed the probability chart image link in the Thunderstore README.
+
 ## 1.0.0
 
 - Added a configurable 4% random quality chance with weighted Uncommon, Rare, Epic, and Legendary results.

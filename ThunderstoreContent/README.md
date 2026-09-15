@@ -44,7 +44,7 @@ Set `Guaranteed Quality Every N Levels` to `0` to use only the ordinary random q
 
 The chart shows ordinary LevelUpChoices rarity progression and the `4%` random quality rate. The guaranteed quality setting is a periodic level-based event, so it is described below the chart rather than plotted as a token-based curve.
 
-![LevelUpChoices and Item Qualities probability chart](quality-chance-chart.svg)
+![LevelUpChoices and Item Qualities probability chart](https://raw.githubusercontent.com/max-arias/level-up-fixes/bfcec2685e47cd40975c90fa053dd7a024f74cb7/ThunderstoreContent/quality-chance-chart.svg)
 
 ## Configuration
 
