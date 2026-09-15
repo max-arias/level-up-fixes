@@ -178,10 +178,23 @@ internal static class IntegrationPatches
         DirectorAPI.InteractableActions += FilterInteractablePool;
 
         MethodInfo populate = AccessTools.Method(typeof(SceneDirector), "PopulateScene");
-        if (populate != null && InteractableCreditField != null)
-            harmony.Patch(populate, prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(InteractableCreditPrefix)));
+        if (populate != null)
+        {
+            harmony.Patch(populate, prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(FilterInteractableCategoriesPrefix)));
+            if (InteractableCreditField != null)
+                harmony.Patch(populate, prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(InteractableCreditPrefix)));
+        }
         else if (Math.Abs(ConfigState.InteractableCreditMultiplier.Value - 1f) > 0.001f)
-            Log.Warning("SceneDirector credit seam is unsupported; credit scaling disabled.");
+            Log.Warning("SceneDirector seam is unsupported; final interactable filtering and credit scaling disabled.");
+    }
+
+    private static void FilterInteractableCategoriesPrefix()
+    {
+        if (!LevelUpChoices.ModConfig.IsModEnabled ||
+            !LevelUpChoices.ModConfig.EnableInteractableRemoval.Value ||
+            !ClassicStageInfo.instance?.interactableCategories)
+            return;
+        FilterInteractableSelection(ClassicStageInfo.instance.interactableCategories);
     }
 
     private static void FilterInteractablePool(DccsPool interactablesDccsPool, DirectorAPI.StageInfo _)
@@ -193,22 +206,26 @@ internal static class IntegrationPatches
 
         DirectorAPI.Helpers.ForEachPoolEntryInDccsPool(interactablesDccsPool, poolEntry =>
         {
-            if (!poolEntry.dccs)
-                return;
-            for (int i = 0; i < poolEntry.dccs.categories.Length; i++)
-            {
-                DirectorCardCategorySelection.Category category = poolEntry.dccs.categories[i];
-                DirectorCard[] filteredCards = category.cards.Where(card =>
-                    card == null || card.spawnCard == null || !ItemSourceGroups.IsBlocked(card.spawnCard.name)).ToArray();
-                if (filteredCards.Length == category.cards.Length)
-                    continue;
-
-                if (filteredCards.Length == 0)
-                    category.selectionWeight = 0f;
-                category.cards = filteredCards;
-                poolEntry.dccs.categories[i] = category;
-            }
+            if (poolEntry.dccs)
+                FilterInteractableSelection(poolEntry.dccs);
         });
+    }
+
+    private static void FilterInteractableSelection(DirectorCardCategorySelection selection)
+    {
+        for (int i = 0; i < selection.categories.Length; i++)
+        {
+            DirectorCardCategorySelection.Category category = selection.categories[i];
+            DirectorCard[] filteredCards = category.cards.Where(card =>
+                card == null || card.spawnCard == null || !ItemSourceGroups.IsBlocked(card.spawnCard.name)).ToArray();
+            if (filteredCards.Length == category.cards.Length)
+                continue;
+
+            if (filteredCards.Length == 0)
+                category.selectionWeight = 0f;
+            category.cards = filteredCards;
+            selection.categories[i] = category;
+        }
     }
 
     private static void PatchExperience(Harmony harmony)
@@ -528,6 +545,7 @@ internal static class ItemSourceGroups
     private static readonly string[] Chests = { "isccasinochest", "isccategorychestdamage", "isccategorychesthealing", "isccategorychestutility", "iscchest1", "iscchest1stealthed", "iscchest2", "iscgoldchest", "isclunarchest", "isccategorychest2damage", "isccategorychest2healing", "isccategorychest2utility" };
     internal static readonly string[] QualityChests = { "iscQualityChest1", "iscQualityChest2" };
     internal static readonly string[] QualityPrinters = { "iscQualityDuplicator", "iscQualityDuplicatorLarge", "iscQualityDuplicatorMilitary", "iscQualityDuplicatorWild" };
+    private static readonly string[] QualityEquipmentBarrels = { "iscQualityEquipmentBarrel" };
     private static readonly string[] Printers = { "iscduplicator", "iscduplicatorlarge", "iscduplicatormilitary", "iscduplicatorwild" };
     private static readonly string[] Shrines = { "iscshrineblood", "iscshrinebloodsandy", "iscshrinebloodsnowy", "iscshrinechance", "iscshrinechancesandy", "iscshrinechancesnowy", "iscshrinecleanse", "iscshrinecleansesandy", "iscshrinecleansesnowy", "iscshrinecombat", "iscshrinecombatsandy", "iscshrinecombatsnowy", "iscshrinerestack", "iscshrinerestacksandy", "iscshrinerestacksnowy" };
     private static readonly string[] Shops = { "isctripleshop", "isctripleshoplarge" };
@@ -541,7 +559,8 @@ internal static class ItemSourceGroups
             Contains(Shops, name) || Contains(Scrappers, name) ||
             ConfigState.RemoveQualityInteractablesValue &&
             QualityRuntime.IsPluginPresent &&
-            (Contains(QualityChests, name) || Contains(QualityPrinters, name));
+            (Contains(QualityChests, name) || Contains(QualityPrinters, name) ||
+            Contains(QualityEquipmentBarrels, name));
     }
 
     private static bool Contains(string[] names, string name)

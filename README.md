@@ -4,7 +4,7 @@
 
 ## Requirements
 
-- [LevelUpChoices 1.1.3](https://thunderstore.io/package/karaeren/LevelUpChoices/)
+- [LevelUpChoices 1.1.3](https://thunderstore.io/package/erenkara/LevelUpChoices/)
 - R2API Director 3.1.0
 - R2API Networking 1.0.3
 - Optional: [Item Qualities](https://thunderstore.io/package/Gorakh/ItemQualities/)

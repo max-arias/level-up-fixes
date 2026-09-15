@@ -674,3 +674,24 @@ Risk of Thunder modding wiki:
 - Interactables (DirectorAPI registration flow, `DirectorCardHolder`, `InteractableSpawnCard`):
   <https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Assets/Interactables/>
 - Stages: <https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Assets/Stage/>
+
+## 8. Implementation addendum
+
+The initial recommendation above was based on the vanilla `SceneDirector` event. The shipped
+profile log and the installed Item Qualities assembly added two further facts:
+
+1. R2API Director and `LevelUpChoicesFixes` now load successfully in the profile.
+2. Item Qualities adds `iscQualityEquipmentBarrel` (displayed in-game as a temporary item
+   distributor) from its `ClassicStageInfo.RebuildCards` hook, after the Director pool callback.
+
+The implementation therefore uses both supported stages of the pipeline: the R2API
+`InteractableActions` callback filters the DCCS pool, and a `SceneDirector.PopulateScene` prefix
+filters the final `interactableCategories` selection after Item Qualities has appended its custom
+cards. `iscQualityEquipmentBarrel` is included in the quality-removal group.
+
+The profile log confirms the previous package/import issue was fixed:
+
+```text
+Loading [R2API.Director 3.1.0]
+Loading [LevelUpChoicesFixes 1.0.0]
+```
