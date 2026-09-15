@@ -78,11 +78,17 @@ internal static class IntegrationPatches
     private static readonly FieldInfo DropTableTierCountsField = AccessTools.Field(typeof(LevelUpChoices.PlayerDropTable), "_tierCounts");
     private static readonly FieldInfo DropTableLastTokensField = AccessTools.Field(typeof(LevelUpChoices.PlayerDropTable), "_lastCalculatedTokens");
     private static readonly FieldInfo InteractableCreditField = AccessTools.Field(typeof(SceneDirector), "interactableCredit");
+    private static readonly FieldInfo ParentBlacklistedSpawnsField =
+        AccessTools.Field(typeof(LevelUpChoices.InteractableSpawnHook), "BlacklistedSpawns");
     private static readonly Dictionary<NetworkInstanceId, int> PendingGuaranteedQualityBatches = new();
     private static readonly HashSet<string> ReportedRefusals = new(StringComparer.OrdinalIgnoreCase);
     private const string EquipmentBarrelName = "iscequipmentbarrel";
     private const int EquipmentBarrelLimit = 4;
     private static int SpawnedEquipmentBarrels;
+    private static readonly string[] ParentCombatShrinesToKeep =
+    {
+        "iscshrinecombat", "iscshrinecombatsandy", "iscshrinecombatsnowy",
+    };
     private static ItemIndex _rerollBaseItem = ItemIndex.None;
     private static ItemIndex _rerollOriginalItem = ItemIndex.None;
     private static Run _pendingQualityRun;
@@ -179,6 +185,7 @@ internal static class IntegrationPatches
     private static void PatchInteractables(Harmony harmony)
     {
         DirectorAPI.InteractableActions += FilterInteractablePool;
+        PreserveParentCombatShrines();
 
         MethodInfo populate = AccessTools.Method(typeof(SceneDirector), "PopulateScene");
         if (populate != null)
@@ -201,6 +208,20 @@ internal static class IntegrationPatches
         }
         else
             Log.Warning("DirectorCore.TrySpawnObject seam is unsupported; item sources spawned outside stage pools (Item Qualities speed barrels and stealth chests, key lockboxes, shipping requests) stay spawnable.");
+    }
+
+    /// <summary>LevelUpChoices removes these three Collective Shrine of Combat variants itself.
+    /// Restore them before its stage-population hook runs; other requested shrines are not on its
+    /// blacklist and therefore only need to bypass this add-on's former prefix rule.</summary>
+    private static void PreserveParentCombatShrines()
+    {
+        if (ParentBlacklistedSpawnsField?.GetValue(null) is not HashSet<string> blacklisted)
+        {
+            Log.Warning("LevelUpChoices interactable blacklist seam is unsupported; Collective Shrine of Combat remains removed.");
+            return;
+        }
+        foreach (string shrine in ParentCombatShrinesToKeep)
+            blacklisted.Remove(shrine);
     }
 
     /// <summary>Refuses item sources that are spawned directly instead of through a stage pool, so a
@@ -605,10 +626,8 @@ internal static class ItemSources
         "iscduplicator", "iscduplicatorlarge", "iscduplicatormilitary", "iscduplicatorwild",
     };
 
-    /// <summary>Shrines are matched by family prefix: "no shrines" is the intent, so new DLC shrines
-    /// (Shrine of the Mountain, Halcyon Shrine, Altar of Gold, Shrine of Shaping, Shrine of the Woods,
-    /// Collective Shrine of Combat) are covered without a code change.</summary>
-    private const string ShrinePrefix = "iscshrine";
+    // Legacy shrines remain controlled by LevelUpChoices. Requested shrine rewards and services
+    // are intentionally not blocked here.
 
     /// <summary>Item Qualities item sources. Its equipment barrel follows the same removal rule
     /// as other quality sources, preventing it from bypassing equipment-source removal.</summary>
@@ -631,7 +650,7 @@ internal static class ItemSources
     {
         if (string.IsNullOrWhiteSpace(name))
             return false;
-        if (name.StartsWith(ShrinePrefix, StringComparison.OrdinalIgnoreCase) || Always.Contains(name))
+        if (Always.Contains(name))
             return true;
         return ConfigState.RemoveQualityInteractablesValue &&
             QualityRuntime.IsPluginPresent &&

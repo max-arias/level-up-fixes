@@ -19,7 +19,6 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 SOURCE = REPO / "src" / "LevelUpChoicesFixes.cs"
 INVENTORY = REPO / "tests" / "data" / "interactable_inventory.json"
 
-SHRINE_PREFIX = "iscshrine"
 
 # Interactables that intentionally stay spawnable. Every entry needs a reason: an unclassified
 # new interactable must fail this suite so a human decides, rather than silently spawning.
@@ -49,12 +48,33 @@ KEPT = {
     "iscdronecombinerstation": "combines drones",
     # Equipment barrel is permitted through a four-per-stage spawn cap, not as an unbounded pool card.
     "iscequipmentbarrel": "capped at four per stage",
+    # Requested shrine rewards/services remain part of the stage pool.
+    "iscshrineboss": "Shrine of the Mountain",
+    "iscshrinebosssandy": "Shrine of the Mountain",
+    "iscshrinebosssnowy": "Shrine of the Mountain",
+    "iscshrinehalcyonite": "Halcyon Shrine",
+    "iscshrinehalcyonitetier1": "Halcyon Shrine",
+    "iscshrinegoldshoresaccess": "Altar of Gold",
+    "iscshrinecolossusaccess": "Shrine of Shaping",
+    "iscshrinehealing": "Shrine of the Woods",
+    "iscshrinecombat": "Collective Shrine of Combat",
+    "iscshrinecombatsandy": "Collective Shrine of Combat",
+    "iscshrinecombatsnowy": "Collective Shrine of Combat",
     # Void content, kept on request even though the cradles grant void items.
     "iscvoidcamp": "void seed, kept on request",
     "iscvoidchest": "void cradle, kept on request",
     "iscvoidchestsacrificeon": "void cradle, kept on request",
     "iscvoidcoinbarrel": "void stalk, kept on request",
     "iscvoidtriple": "void potential, kept on request",
+}
+
+# These remain removed by LevelUpChoices' own stage-pool filter. They must stay explicit rather than
+# using an iscshrine prefix because the shrine reward/services listed in KEPT are intentionally kept.
+PARENT_BLOCKED_SHRINES = {
+    "iscshrineblood", "iscshrinebloodsandy", "iscshrinebloodsnowy",
+    "iscshrinechance", "iscshrinechancesandy", "iscshrinechancesnowy",
+    "iscshrinecleanse", "iscshrinecleansesandy", "iscshrinecleansesnowy",
+    "iscshrinerestack", "iscshrinerestacksandy", "iscshrinerestacksnowy",
 }
 
 # Item-granting interactables that are deliberately outside this policy because they are not
@@ -86,7 +106,7 @@ QUALITY_CARDS = INVENTORY_DATA["item_qualities_cards"]
 def is_blocked(name, quality_enabled=True):
     """Mirror of ItemSources.IsBlocked, including the Item Qualities option gate."""
     name = name.lower()
-    if name.startswith(SHRINE_PREFIX):
+    if name in PARENT_BLOCKED_SHRINES:
         return True
     if name in QUALITY_ONLY:
         return quality_enabled
@@ -109,13 +129,18 @@ class InteractablePolicy(unittest.TestCase):
         self.assertIn("isctemporaryitemsshop", POOL_CARDS)
         self.assertTrue(is_blocked("isctemporaryitemsshop"))
 
-    def test_all_shrines_are_blocked(self):
-        for name in POOL_CARDS:
-            if name.startswith(SHRINE_PREFIX):
-                self.assertTrue(is_blocked(name), name)
-        self.assertGreaterEqual(len([n for n in POOL_CARDS if n.startswith(SHRINE_PREFIX)]), 10)
-        # Family matching, so a future DLC shrine is covered without a code change.
-        self.assertTrue(is_blocked("iscshrinehypotheticaldlc4"))
+    def test_requested_shrines_are_kept(self):
+        requested = (
+            "iscshrineboss", "iscshrinebosssandy", "iscshrinebosssnowy",
+            "iscshrinehalcyonite", "iscshrinehalcyonitetier1",
+            "iscshrinegoldshoresaccess", "iscshrinecolossusaccess", "iscshrinehealing",
+            "iscshrinecombat", "iscshrinecombatsandy", "iscshrinecombatsnowy",
+        )
+        for name in requested:
+            self.assertIn(name, POOL_CARDS)
+            self.assertFalse(is_blocked(name), name)
+        source = SOURCE.read_text()
+        self.assertIn("PreserveParentCombatShrines", source)
 
     def test_quality_item_sources_follow_the_option(self):
         for name in ("iscqualitychest1", "iscqualitychest2", "iscqualityduplicator",

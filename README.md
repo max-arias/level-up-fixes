@@ -68,14 +68,18 @@ Host settings are authoritative in multiplayer and synchronize to connected clie
 While LevelUpChoices' `Enable Interactable Removal` option is on, this add-on also removes
 interactables that hand out items, including ones LevelUpChoices does not know about (DLC3's
 Temporary Item Distributor and Item Qualities' sources). Removal covers chests, printers, shops that
-sell items, recycling services, every shrine, and item-granted sources (key lockboxes and shipping
-request deliveries). Stage pools are filtered before the stage populates, and item sources that a mod
-spawns directly are refused.
+sell items, recycling services, the item-producing Blood, Chance, Cleansing, and Restack shrine
+families, and item-granted sources (key lockboxes and shipping request deliveries). Stage pools are
+filtered before the stage populates, and item sources that a mod spawns directly are refused.
 
-Kept on purpose: up to four equipment barrels per stage, void interactables, drone vendors and drone
-services, plain barrels, portals, and the radar tower. Equipment shops remain removed. The equipment-barrel
-cap prevents LevelUpChoices' redirected Barrels-category budget from creating extreme equipment density.
-Removal is driven by one list in `src/LevelUpChoicesFixes.cs`, guarded by `tests/test_interactable_policy.py`.
+Kept shrine interactions: Shrine of the Mountain, Halcyon Shrine, Altar of Gold, Shrine of Shaping,
+Shrine of the Woods, and the Collective Shrine of Combat.
+
+Kept on purpose: up to four equipment barrels per stage, the listed shrine interactions, void interactables,
+drone vendors and drone services, plain barrels, portals, and the radar tower. Equipment shops remain
+removed. The equipment-barrel cap prevents LevelUpChoices' redirected Barrels-category budget from creating
+extreme equipment density. Removal is driven by one list in `src/LevelUpChoicesFixes.cs`, guarded by
+`tests/test_interactable_policy.py`.
 
 ## Probability chart
 

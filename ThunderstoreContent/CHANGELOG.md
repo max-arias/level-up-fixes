@@ -2,9 +2,10 @@
 
 ## 1.0.2
 
-- Fixed item-source removal missing whole interactable families: DLC3's Temporary Item Distributor, the equipment-less DLC3 drone scrapper, Shrine of the Mountain, Halcyon Shrine, Altar of Gold, Shrine of Shaping, Shrine of the Woods, and the Collective Shrine of Combat.
+- Fixed item-source removal missing DLC3's Temporary Item Distributor and the equipment-less DLC3 drone scrapper.
 - Item sources that spawn outside stage pools are now refused too: Item Qualities' dropped-item barrel and cloaked chest, key lockboxes, and shipping request deliveries.
 - Capped equipment barrels at four per stage and kept equipment shops removed. This preserves a small equipment supply without LevelUpChoices' Barrels-category weight redistribution causing extreme density. Item Qualities' equipment barrel remains removed when `Remove Quality Interactables` is enabled.
+- Restored Shrine of the Mountain, Halcyon Shrine, Altar of Gold, Shrine of Shaping, Shrine of the Woods, and the Collective Shrine of Combat; the latter is explicitly removed from LevelUpChoices' private blacklist.
 - Fixed runs stalling at high levels: the add-on no longer overwrites LevelUpChoices' XP table.
 - Fixed queued guaranteed quality sets carrying over while the mod is disabled and being spent after re-enabling.
 - Removed the `XP Curve`, `Starting XP`, and `XP Scaling` settings. LevelUpChoices' own `Max Level` and `Enable Level System` settings control the XP curve again, using its auto-tuned progression.
