@@ -5,11 +5,12 @@
 ## Requirements
 
 - [LevelUpChoices 1.1.3](https://thunderstore.io/package/karaeren/LevelUpChoices/)
+- R2API Director 3.1.0
 - R2API Networking 1.0.3
 - Optional: [Item Qualities](https://thunderstore.io/package/Gorakh/ItemQualities/)
 - Optional: [Risk of Options](https://thunderstore.io/package/RiskofThunder/RiskOfOptions/)
 
-Install the package with a Thunderstore-compatible mod manager. R2API Networking is installed as a dependency. Item Qualities is only needed for the quality features.
+Install the package with a Thunderstore-compatible mod manager. R2API Director and R2API Networking are installed as dependencies. Item Qualities is only needed for the quality features.
 
 ## Opening the choice menu
 

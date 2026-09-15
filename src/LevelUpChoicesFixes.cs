@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using BepInEx;
 using HarmonyLib;
+using R2API;
 using R2API.Networking;
 using RoR2;
 using R2API.Utils;
@@ -15,7 +16,7 @@ using UnityEngine.Networking;
 namespace TeamTayne.LevelUpChoicesFixes;
 
 [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-[BepInDependency(NetworkingAPI.PluginGUID)]
+[BepInDependency(DirectorAPI.PluginGUID)]
 [BepInDependency("karaeren.LevelUpChoices", "1.1.3")]
 [BepInDependency(ItemQualitiesGuid, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(RiskOfOptionsIntegration.PluginGUID, BepInDependency.DependencyFlags.SoftDependency)]
@@ -52,6 +53,7 @@ public sealed class LevelUpChoicesFixes : BaseUnityPlugin
         {
             Log.Warning($"Pause cleanup failed during plugin teardown: {e.Message}");
         }
+        IntegrationPatches.Uninstall();
         _harmony?.UnpatchSelf();
     }
 }
@@ -75,7 +77,6 @@ internal static class IntegrationPatches
     private static readonly FieldInfo DropTableWeightsField = AccessTools.Field(typeof(LevelUpChoices.PlayerDropTable), "_weights");
     private static readonly FieldInfo DropTableTierCountsField = AccessTools.Field(typeof(LevelUpChoices.PlayerDropTable), "_tierCounts");
     private static readonly FieldInfo DropTableLastTokensField = AccessTools.Field(typeof(LevelUpChoices.PlayerDropTable), "_lastCalculatedTokens");
-    private static readonly FieldInfo SpawnBlacklistField = AccessTools.Field(typeof(LevelUpChoices.InteractableSpawnHook), "BlacklistedSpawns");
     private static readonly FieldInfo InteractableCreditField = AccessTools.Field(typeof(SceneDirector), "interactableCredit");
     private static readonly Dictionary<NetworkInstanceId, int> PendingGuaranteedQualityBatches = new();
     private static ItemIndex _rerollBaseItem = ItemIndex.None;
@@ -89,7 +90,13 @@ internal static class IntegrationPatches
         PatchLevelSchedule(harmony);
         PatchPause(harmony);
         PatchExperience(harmony);
+        PatchInteractables(harmony);
         QualityRuntime.TryInitialize();
+    }
+
+    internal static void Uninstall()
+    {
+        DirectorAPI.InteractableActions -= FilterInteractablePool;
     }
 
     private static void PatchInitialize(Harmony harmony)
@@ -168,51 +175,40 @@ internal static class IntegrationPatches
     }
     private static void PatchInteractables(Harmony harmony)
     {
-        MethodInfo sourceHook = AccessTools.Method(typeof(LevelUpChoices.InteractableSpawnHook), "OnPrePopulateSceneServer");
-        if (sourceHook != null && SpawnBlacklistField != null)
-        {
-            harmony.Patch(sourceHook,
-                prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(InteractablePrefix)));
-        }
-        else
-            Log.Warning("Interactable source seam is unsupported; per-category controls disabled.");
+        DirectorAPI.InteractableActions += FilterInteractablePool;
 
         MethodInfo populate = AccessTools.Method(typeof(SceneDirector), "PopulateScene");
-        if (populate != null)
-        {
-            harmony.Patch(populate, prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(InteractableCategoriesPrefix)));
-            if (InteractableCreditField != null)
-                harmony.Patch(populate, prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(InteractableCreditPrefix)));
-        }
+        if (populate != null && InteractableCreditField != null)
+            harmony.Patch(populate, prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(InteractableCreditPrefix)));
         else if (Math.Abs(ConfigState.InteractableCreditMultiplier.Value - 1f) > 0.001f)
             Log.Warning("SceneDirector credit seam is unsupported; credit scaling disabled.");
     }
 
-    private static void InteractableCategoriesPrefix()
+    private static void FilterInteractablePool(DccsPool interactablesDccsPool, DirectorAPI.StageInfo _)
     {
-        FilterInteractableCategories();
-    }
-
-    private static void FilterInteractableCategories()
-    {
-        if (!LevelUpChoices.ModConfig.IsModEnabled || !LevelUpChoices.ModConfig.EnableInteractableRemoval.Value ||
-            !ClassicStageInfo.instance?.interactableCategories)
+        if (!LevelUpChoices.ModConfig.IsModEnabled ||
+            !LevelUpChoices.ModConfig.EnableInteractableRemoval.Value ||
+            !interactablesDccsPool)
             return;
 
-        DirectorCardCategorySelection selection = ClassicStageInfo.instance.interactableCategories;
-        for (int i = 0; i < selection.categories.Length; i++)
+        DirectorAPI.Helpers.ForEachPoolEntryInDccsPool(interactablesDccsPool, poolEntry =>
         {
-            DirectorCardCategorySelection.Category category = selection.categories[i];
-            DirectorCard[] filteredCards = category.cards.Where(card =>
-                card.spawnCard != null && !ItemSourceGroups.IsBlocked(card.spawnCard.name)).ToArray();
-            if (filteredCards.Length == category.cards.Length)
-                continue;
+            if (!poolEntry.dccs)
+                return;
+            for (int i = 0; i < poolEntry.dccs.categories.Length; i++)
+            {
+                DirectorCardCategorySelection.Category category = poolEntry.dccs.categories[i];
+                DirectorCard[] filteredCards = category.cards.Where(card =>
+                    card == null || card.spawnCard == null || !ItemSourceGroups.IsBlocked(card.spawnCard.name)).ToArray();
+                if (filteredCards.Length == category.cards.Length)
+                    continue;
 
-            if (filteredCards.Length == 0)
-                category.selectionWeight = 0f;
-            category.cards = filteredCards;
-            selection.categories[i] = category;
-        }
+                if (filteredCards.Length == 0)
+                    category.selectionWeight = 0f;
+                category.cards = filteredCards;
+                poolEntry.dccs.categories[i] = category;
+            }
+        });
     }
 
     private static void PatchExperience(Harmony harmony)
@@ -397,25 +393,6 @@ internal static class IntegrationPatches
             LevelUpChoices.GamePauseManager.ForceReset();
     }
 
-    private static void InteractablePrefix()
-    {
-        FilterInteractableCategories();
-        if (!QualityRuntime.IsPluginPresent ||
-            !TryGetSpawnBlacklist(out HashSet<string> blacklist))
-            return;
-        foreach (string name in ItemSourceGroups.QualityChests)
-            SetQualityInteractableAllowed(blacklist, name);
-        foreach (string name in ItemSourceGroups.QualityPrinters)
-            SetQualityInteractableAllowed(blacklist, name);
-    }
-
-    private static void SetQualityInteractableAllowed(HashSet<string> blacklist, string name)
-    {
-        if (ConfigState.RemoveQualityInteractablesValue)
-            blacklist.Add(name);
-        else
-            blacklist.Remove(name);
-    }
 
 
     private static void InteractableCreditPrefix(SceneDirector __instance)
@@ -457,11 +434,6 @@ internal static class IntegrationPatches
         hardCapField.SetValue(__instance, table[table.Count - 1]);
     }
 
-    private static bool TryGetSpawnBlacklist(out HashSet<string> blacklist)
-    {
-        blacklist = SpawnBlacklistField?.GetValue(null) as HashSet<string>;
-        return blacklist != null && LevelUpChoices.ModConfig.EnableInteractableRemoval.Value;
-    }
 
     private static bool HasParameters(MethodInfo method, params Type[] expected)
     {

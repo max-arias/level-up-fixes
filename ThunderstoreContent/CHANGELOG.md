@@ -13,3 +13,4 @@
 - Improved mod-manager installation and included the plugin's debugging symbols for troubleshooting.
 - Replaced granular interactable-preservation settings with one `Remove Quality Interactables` control.
 - Removed the reroll refresh and item-choice schedule settings; LevelUpChoices now uses its normal level-up cadence.
+- Switched interactable removal to R2API Director's DCCS-pool hook so chests and other item sources are filtered before stage population.

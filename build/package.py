@@ -24,6 +24,7 @@ def validate_manifest():
     assert data["website_url"].startswith("https://")
     assert data["dependencies"] == [
         "karaeren-LevelUpChoices-1.1.3",
+        "RiskofThunder-R2API_Director-3.1.0",
         "RiskofThunder-R2API_Networking-1.0.3",
     ]
     return data
