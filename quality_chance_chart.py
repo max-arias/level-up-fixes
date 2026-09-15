@@ -4,7 +4,7 @@ from html import escape
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "ThunderstoreContent" / "quality-chance-chart.svg"
 WIDTH = 1226
 HEIGHT = 700

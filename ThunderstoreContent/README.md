@@ -1,6 +1,6 @@
 # LevelUpChoicesFixes
 
-LevelUpChoicesFixes adds compatibility fixes and configurable quality support to [LevelUpChoices](https://thunderstore.io/package/karaeren/LevelUpChoices/) for **Risk of Rain 2**.
+LevelUpChoicesFixes adds compatibility fixes and configurable quality support to [LevelUpChoices](https://thunderstore.io/package/erenkara/LevelUpChoices/) for **Risk of Rain 2**.
 
 ## Requirements
 
@@ -30,7 +30,7 @@ Default quality settings:
 - Guaranteed quality set: every `5` levels
 - Choices in a guaranteed set: `3`
 - Quality weights: Uncommon / Rare / Epic / Legendary = `70 / 20 / 8 / 2`
-- Quality chests and printers: disabled when LevelUpChoices removes item sources
+- Quality chests, printers, and equipment distributors: disabled when LevelUpChoices removes item sources
 
 Guaranteed sets use the normal LevelUpChoices item-rarity progression. Early sets are usually white; green and red base items become more likely as you select more items. The quality tier is selected randomly using the configured quality weights.
 
@@ -48,7 +48,7 @@ The chart shows ordinary LevelUpChoices rarity progression and the `4%` random q
 
 ## Configuration
 
-All settings are server/host settings in the `Server` section of the BepInEx configuration file. The same settings appear in Risk of Options when installed.
+All settings are server/host settings in the `Server` section of the BepInEx configuration file. Quality and interactable-credit settings also appear in Risk of Options when it is installed.
 
 | Setting | Default | Description |
 | --- | ---: | --- |
@@ -57,7 +57,17 @@ All settings are server/host settings in the `Server` section of the BepInEx con
 | Guaranteed Quality Every N Levels | `5` | Queue a guaranteed quality choice set. Set to `0` to disable. |
 | Guaranteed Quality Choice Count | `3` | Number of guaranteed quality choices. |
 | Uncommon / Rare / Epic / Legendary Quality Weight | `70 / 20 / 8 / 2` | Relative quality-tier weights. |
-| Remove Quality Interactables | `true` | Remove Item Qualities chests and printers when LevelUpChoices removes item sources. |
+| Remove Quality Interactables | `true` | Remove Item Qualities chests, printers, and equipment distributors when LevelUpChoices removes item sources. |
+
+Additional native configuration:
+
+| Setting | Default | Description |
+| --- | ---: | --- |
+| Item Blacklist | `DefensiveMicrobots` | Comma-separated item names removed from every LevelUpChoices player pool. |
+| Interactable Credit Multiplier | `1.0` | Multiplies the original interactable credit budget. |
+| XP Curve | `Exponential` | Selects the custom XP curve shape. |
+| Starting XP | `20` | XP required for the first custom level step. |
+| XP Scaling | `1.55` | Exponential multiplier, or linear additive rate when XP Curve is `Linear`. |
 
 Host settings are authoritative in multiplayer and synchronize to connected clients when a run starts or settings change.
 
@@ -65,7 +75,7 @@ Host settings are authoritative in multiplayer and synchronize to connected clie
 
 - Prevents quality variants from causing duplicate-item reroll and banish problems.
 - Recovers cleanly when the choice menu is closed through the pause screen or when a run ends.
-- Adds configurable item blacklists, interactable preservation, interactable credit scaling, and XP curves.
+- Adds configurable item blacklists, quality-interactable removal, interactable credit scaling, and XP curves.
 
 ## Support
 
