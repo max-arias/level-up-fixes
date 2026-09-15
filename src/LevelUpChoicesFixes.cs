@@ -25,7 +25,7 @@ public sealed class LevelUpChoicesFixes : BaseUnityPlugin
 {
     internal const string PluginGUID = "TeamTayne.LevelUpChoicesFixes";
     internal const string PluginName = "LevelUpChoicesFixes";
-    internal const string PluginVersion = "1.0.1";
+    internal const string PluginVersion = "1.0.2";
 
     internal const string ItemQualitiesGuid = "com.Gorakh.ItemQualities";
 
@@ -79,6 +79,10 @@ internal static class IntegrationPatches
     private static readonly FieldInfo DropTableLastTokensField = AccessTools.Field(typeof(LevelUpChoices.PlayerDropTable), "_lastCalculatedTokens");
     private static readonly FieldInfo InteractableCreditField = AccessTools.Field(typeof(SceneDirector), "interactableCredit");
     private static readonly Dictionary<NetworkInstanceId, int> PendingGuaranteedQualityBatches = new();
+    private static readonly HashSet<string> ReportedRefusals = new(StringComparer.OrdinalIgnoreCase);
+    private const string EquipmentBarrelName = "iscequipmentbarrel";
+    private const int EquipmentBarrelLimit = 4;
+    private static int SpawnedEquipmentBarrels;
     private static ItemIndex _rerollBaseItem = ItemIndex.None;
     private static ItemIndex _rerollOriginalItem = ItemIndex.None;
     private static Run _pendingQualityRun;
@@ -89,7 +93,6 @@ internal static class IntegrationPatches
         PatchRerollAndBanish(harmony);
         PatchLevelSchedule(harmony);
         PatchPause(harmony);
-        PatchExperience(harmony);
         PatchInteractables(harmony);
         QualityRuntime.TryInitialize();
     }
@@ -186,10 +189,68 @@ internal static class IntegrationPatches
         }
         else if (Math.Abs(ConfigState.InteractableCreditMultiplier.Value - 1f) > 0.001f)
             Log.Warning("SceneDirector seam is unsupported; final interactable filtering and credit scaling disabled.");
+
+        MethodInfo directSpawn = AccessTools.Method(typeof(DirectorCore), nameof(DirectorCore.TrySpawnObject), new[] { typeof(DirectorSpawnRequest) });
+        if (directSpawn != null)
+        {
+            harmony.Patch(directSpawn,
+                prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(BlockedDirectSpawnPrefix)));
+            harmony.Patch(directSpawn,
+                prefix: new HarmonyMethod(typeof(IntegrationPatches), nameof(EquipmentBarrelLimitPrefix)),
+                postfix: new HarmonyMethod(typeof(IntegrationPatches), nameof(TrackEquipmentBarrelPostfix)));
+        }
+        else
+            Log.Warning("DirectorCore.TrySpawnObject seam is unsupported; item sources spawned outside stage pools (Item Qualities speed barrels and stealth chests, key lockboxes, shipping requests) stay spawnable.");
+    }
+
+    /// <summary>Refuses item sources that are spawned directly instead of through a stage pool, so a
+    /// mod that grants its own chest or dropped-item barrel cannot bypass the pool filter.</summary>
+    private static bool BlockedDirectSpawnPrefix(DirectorSpawnRequest __0)
+    {
+        if (!NetworkServer.active ||
+            !LevelUpChoices.ModConfig.IsModEnabled ||
+            !LevelUpChoices.ModConfig.EnableInteractableRemoval.Value)
+            return true;
+        SpawnCard card = __0?.spawnCard;
+        if (card == null || !ItemSources.IsBlocked(card.name))
+            return true;
+        if (ReportedRefusals.Add(card.name))
+            Log.Info($"Refused direct spawn of removed item source {card.name}.");
+        return false;
+    }
+
+    /// <summary>Allows a small, predictable equipment supply without letting the parent mod's
+    /// Barrels-category weight redistribution flood the stage with equipment barrels.</summary>
+    private static bool EquipmentBarrelLimitPrefix(DirectorSpawnRequest __0)
+    {
+        if (!NetworkServer.active ||
+            !LevelUpChoices.ModConfig.IsModEnabled ||
+            !LevelUpChoices.ModConfig.EnableInteractableRemoval.Value)
+            return true;
+        SpawnCard card = __0?.spawnCard;
+        if (card == null ||
+            !string.Equals(card.name, EquipmentBarrelName, StringComparison.OrdinalIgnoreCase) ||
+            SpawnedEquipmentBarrels < EquipmentBarrelLimit)
+            return true;
+        if (ReportedRefusals.Add(EquipmentBarrelName))
+            Log.Info($"Refused equipment barrel after reaching the per-stage limit of {EquipmentBarrelLimit}.");
+        return false;
+    }
+
+    private static void TrackEquipmentBarrelPostfix(DirectorSpawnRequest __0, GameObject __result)
+    {
+        if (__result == null ||
+            !NetworkServer.active ||
+            !LevelUpChoices.ModConfig.IsModEnabled ||
+            !LevelUpChoices.ModConfig.EnableInteractableRemoval.Value ||
+            !string.Equals(__0?.spawnCard?.name, EquipmentBarrelName, StringComparison.OrdinalIgnoreCase))
+            return;
+        SpawnedEquipmentBarrels++;
     }
 
     private static void FilterInteractableCategoriesPrefix()
     {
+        SpawnedEquipmentBarrels = 0;
         if (!LevelUpChoices.ModConfig.IsModEnabled ||
             !LevelUpChoices.ModConfig.EnableInteractableRemoval.Value ||
             !ClassicStageInfo.instance?.interactableCategories)
@@ -217,7 +278,7 @@ internal static class IntegrationPatches
         {
             DirectorCardCategorySelection.Category category = selection.categories[i];
             DirectorCard[] filteredCards = category.cards.Where(card =>
-                card == null || card.spawnCard == null || !ItemSourceGroups.IsBlocked(card.spawnCard.name)).ToArray();
+                card == null || card.spawnCard == null || !ItemSources.IsBlocked(card.spawnCard.name)).ToArray();
             if (filteredCards.Length == category.cards.Length)
                 continue;
 
@@ -226,17 +287,6 @@ internal static class IntegrationPatches
             category.cards = filteredCards;
             selection.categories[i] = category;
         }
-    }
-
-    private static void PatchExperience(Harmony harmony)
-    {
-        MethodInfo rebuild = AccessTools.Method(typeof(LevelUpChoices.ExperienceHook), "RebuildCustomTable");
-        if (rebuild == null)
-        {
-            Log.Warning("ExperienceHook.RebuildCustomTable seam is unsupported; XP curve controls disabled.");
-            return;
-        }
-        harmony.Patch(rebuild, postfix: new HarmonyMethod(typeof(IntegrationPatches), nameof(RebuildXpPostfix)));
     }
 
     private static void PlayerDropTableInitializePostfix(LevelUpChoices.PlayerDropTable __instance)
@@ -367,8 +417,14 @@ internal static class IntegrationPatches
             _pendingQualityRun = Run.instance;
         }
 
+        if (!LevelUpChoices.ModConfig.IsModEnabled || !ConfigState.QualityEnabled)
+        {
+            PendingGuaranteedQualityBatches.Clear();
+            return;
+        }
+
         int interval = ConfigState.GuaranteedQualityEveryValue;
-        if (!ConfigState.QualityEnabled || interval <= 0 || newLevel == 0 || newLevel % (uint)interval != 0)
+        if (interval <= 0 || newLevel == 0 || newLevel % (uint)interval != 0)
             return;
 
         foreach (PlayerCharacterMasterController player in PlayerCharacterMasterController.instances)
@@ -422,35 +478,6 @@ internal static class IntegrationPatches
         else if (value is int intCredit)
             InteractableCreditField.SetValue(__instance, (int)Math.Max(0, intCredit * ConfigState.InteractableCreditMultiplierValue));
     }
-
-    private static void RebuildXpPostfix(object __instance)
-    {
-        if (!LevelUpChoices.ModConfig.EnableCustomLevelSystemValue)
-            return;
-        FieldInfo tableField = AccessTools.Field(__instance.GetType(), "customExperienceTable");
-        FieldInfo naturalCapField = AccessTools.Field(__instance.GetType(), "customNaturalLevelCap");
-        FieldInfo hardCapField = AccessTools.Field(__instance.GetType(), "customHardExpCap");
-        if (tableField == null || naturalCapField == null || hardCapField == null)
-            return;
-
-        int maxLevel = Math.Max(2, LevelUpChoices.ModConfig.MaxLevelValue);
-        double starting = Math.Max(0d, ConfigState.StartingXp.Value);
-        double scaling = Math.Max(0d, ConfigState.ExponentialXpScaling.Value);
-        List<ulong> table = new() { 0UL, 0UL };
-        double cumulative = 0d;
-        for (uint level = 2; level <= maxLevel; level++)
-        {
-            double step = ConfigState.XpCurve.Value == XpCurveMode.Exponential
-                ? starting * Math.Pow(scaling, level - 2)
-                : starting * (1d + scaling * (level - 2));
-            cumulative = Math.Min(ulong.MaxValue, cumulative + Math.Max(0d, step));
-            table.Add((ulong)cumulative);
-        }
-        tableField.SetValue(__instance, table.ToArray());
-        naturalCapField.SetValue(__instance, (uint)(table.Count - 1));
-        hardCapField.SetValue(__instance, table[table.Count - 1]);
-    }
-
 
     private static bool HasParameters(MethodInfo method, params Type[] expected)
     {
@@ -540,37 +567,83 @@ internal static class IntegrationPatches
     }
 }
 
-internal static class ItemSourceGroups
+/// <summary>
+/// Decides which stage interactables count as removable item sources.
+/// Names are compared case-insensitively against <see cref="RoR2.SpawnCard.name"/>.
+/// The inventory is derived from the shipped game's interactable DCCS pools and from the
+/// spawn cards Item Qualities registers; <c>tests/test_interactable_policy.py</c> guards it.
+/// </summary>
+internal static class ItemSources
 {
-    private static readonly string[] Chests = { "isccasinochest", "isccategorychestdamage", "isccategorychesthealing", "isccategorychestutility", "iscchest1", "iscchest1stealthed", "iscchest2", "iscgoldchest", "isclunarchest", "isccategorychest2damage", "isccategorychest2healing", "isccategorychest2utility" };
-    internal static readonly string[] QualityChests = { "iscQualityChest1", "iscQualityChest2" };
-    internal static readonly string[] QualityPrinters = { "iscQualityDuplicator", "iscQualityDuplicatorLarge", "iscQualityDuplicatorMilitary", "iscQualityDuplicatorWild" };
-    private static readonly string[] QualityEquipmentBarrels = { "iscQualityEquipmentBarrel" };
-    private static readonly string[] Printers = { "iscduplicator", "iscduplicatorlarge", "iscduplicatormilitary", "iscduplicatorwild" };
-    private static readonly string[] Shrines = { "iscshrineblood", "iscshrinebloodsandy", "iscshrinebloodsnowy", "iscshrinechance", "iscshrinechancesandy", "iscshrinechancesnowy", "iscshrinecleanse", "iscshrinecleansesandy", "iscshrinecleansesnowy", "iscshrinecombat", "iscshrinecombatsandy", "iscshrinecombatsnowy", "iscshrinerestack", "iscshrinerestacksandy", "iscshrinerestacksnowy" };
-    private static readonly string[] Shops = { "isctripleshop", "isctripleshoplarge" };
-    private static readonly string[] Scrappers = { "iscscrapper" };
+    /// <summary>Chests that hand out items. DLC3's Temporary Item Distributor sits in the "Chests"
+    /// pool category but is not named <c>iscchest*</c>, so it is listed explicitly.</summary>
+    private static readonly string[] Chests =
+    {
+        "isccasinochest", "isccategorychestdamage", "isccategorychesthealing", "isccategorychestutility",
+        "iscchest1", "iscchest1stealthed", "iscchest2", "iscgoldchest", "isclunarchest",
+        "isccategorychest2damage", "isccategorychest2healing", "isccategorychest2utility",
+        "isctemporaryitemsshop",
+    };
+
+    /// <summary>Multishop terminals and card shops that sell items.</summary>
+    private static readonly string[] Shops =
+    {
+        "isctripleshop", "isctripleshoplarge", "isctripleshopequipment",
+    };
+
+    /// <summary>Recycling services that convert items or drones into items.</summary>
+    private static readonly string[] Scrappers = { "iscscrapper", "iscdronescrapper" };
+
+    /// <summary>Item sources that an item in a player's inventory spawns on demand rather than the
+    /// stage pool granting them: Rusty Key, Encrusted Key, and the Shipping Request Form delivery.
+    /// They still hand out items, so they are removed as well; delete this array to let key-driven
+    /// chests and deliveries return.</summary>
+    private static readonly string[] PlayerGrantedSources = { "isclockbox", "isclockboxvoid", "iscfreechest" };
+
+    internal static readonly string[] Printers =
+    {
+        "iscduplicator", "iscduplicatorlarge", "iscduplicatormilitary", "iscduplicatorwild",
+    };
+
+    /// <summary>Shrines are matched by family prefix: "no shrines" is the intent, so new DLC shrines
+    /// (Shrine of the Mountain, Halcyon Shrine, Altar of Gold, Shrine of Shaping, Shrine of the Woods,
+    /// Collective Shrine of Combat) are covered without a code change.</summary>
+    private const string ShrinePrefix = "iscshrine";
+
+    /// <summary>Item Qualities item sources. Its equipment barrel follows the same removal rule
+    /// as other quality sources, preventing it from bypassing equipment-source removal.</summary>
+    internal static readonly string[] QualityItemSources =
+    {
+        "iscQualityChest1", "iscQualityChest2",
+        "iscQualityDuplicator", "iscQualityDuplicatorLarge",
+        "iscQualityDuplicatorMilitary", "iscQualityDuplicatorWild",
+        "iscQualityScrapper", "iscSpeedOnPickupBarrel", "iscChest2Stealthed",
+        "iscQualityEquipmentBarrel",
+    };
+
+    private static readonly HashSet<string> Always =
+        Merge(Chests, Shops, Scrappers, Printers, PlayerGrantedSources);
+
+    /// <summary>Removed only while the Item Qualities option is on.</summary>
+    private static readonly HashSet<string> QualityOnly = Merge(QualityItemSources);
 
     internal static bool IsBlocked(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
             return false;
-        return Contains(Chests, name) || Contains(Printers, name) || Contains(Shrines, name) ||
-            Contains(Shops, name) || Contains(Scrappers, name) ||
-            ConfigState.RemoveQualityInteractablesValue &&
+        if (name.StartsWith(ShrinePrefix, StringComparison.OrdinalIgnoreCase) || Always.Contains(name))
+            return true;
+        return ConfigState.RemoveQualityInteractablesValue &&
             QualityRuntime.IsPluginPresent &&
-            (Contains(QualityChests, name) || Contains(QualityPrinters, name) ||
-            Contains(QualityEquipmentBarrels, name));
+            QualityOnly.Contains(name);
     }
 
-    private static bool Contains(string[] names, string name)
+    private static HashSet<string> Merge(params string[][] groups)
     {
-        foreach (string candidate in names)
-        {
-            if (string.Equals(candidate, name, StringComparison.OrdinalIgnoreCase))
-                return true;
-        }
-        return false;
+        HashSet<string> names = new(StringComparer.OrdinalIgnoreCase);
+        foreach (string[] group in groups)
+            foreach (string name in group)
+                names.Add(name);
+        return names;
     }
-
 }

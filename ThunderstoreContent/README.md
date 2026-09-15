@@ -30,7 +30,7 @@ Default quality settings:
 - Guaranteed quality set: every `5` levels
 - Choices in a guaranteed set: `3`
 - Quality weights: Uncommon / Rare / Epic / Legendary = `70 / 20 / 8 / 2`
-- Quality chests, printers, and equipment distributors: disabled when LevelUpChoices removes item sources
+- Quality item sources (chests, printers, the dropped-item barrel, cloaked chest, and equipment barrel) are disabled when LevelUpChoices removes item sources
 
 Guaranteed sets use the normal LevelUpChoices item-rarity progression. Early sets are usually white; green and red base items become more likely as you select more items. The quality tier is selected randomly using the configured quality weights.
 
@@ -57,7 +57,7 @@ All settings are server/host settings in the `Server` section of the BepInEx con
 | Guaranteed Quality Every N Levels | `5` | Queue a guaranteed quality choice set. Set to `0` to disable. |
 | Guaranteed Quality Choice Count | `3` | Number of guaranteed quality choices. |
 | Uncommon / Rare / Epic / Legendary Quality Weight | `70 / 20 / 8 / 2` | Relative quality-tier weights. |
-| Remove Quality Interactables | `true` | Remove Item Qualities chests, printers, and equipment distributors when LevelUpChoices removes item sources. |
+| Remove Quality Interactables | `true` | Remove Item Qualities item sources (chests, printers, the dropped-item barrel, cloaked chest, and equipment barrel) when LevelUpChoices removes item sources. |
 
 Additional native configuration:
 
@@ -65,9 +65,6 @@ Additional native configuration:
 | --- | ---: | --- |
 | Item Blacklist | `DefensiveMicrobots` | Comma-separated item names removed from every LevelUpChoices player pool. |
 | Interactable Credit Multiplier | `1.0` | Multiplies the original interactable credit budget. |
-| XP Curve | `Exponential` | Selects the custom XP curve shape. |
-| Starting XP | `20` | XP required for the first custom level step. |
-| XP Scaling | `1.55` | Exponential multiplier, or linear additive rate when XP Curve is `Linear`. |
 
 Host settings are authoritative in multiplayer and synchronize to connected clients when a run starts or settings change.
 
@@ -75,7 +72,20 @@ Host settings are authoritative in multiplayer and synchronize to connected clie
 
 - Prevents quality variants from causing duplicate-item reroll and banish problems.
 - Recovers cleanly when the choice menu is closed through the pause screen or when a run ends.
-- Adds configurable item blacklists, quality-interactable removal, interactable credit scaling, and XP curves.
+- Adds configurable item blacklists, quality-interactable removal, and interactable credit scaling.
+
+## What is removed with item sources
+
+While LevelUpChoices' `Enable Interactable Removal` option is on, this add-on also removes
+interactables that hand out items, including ones LevelUpChoices does not know about (DLC3's
+Temporary Item Distributor and Item Qualities' sources). Removal covers chests, printers, shops that
+sell items, recycling services, every shrine, and item-granted sources (key lockboxes and shipping
+request deliveries). Stage pools are filtered before the stage populates, and item sources that a mod
+spawns directly are refused.
+
+Kept on purpose: up to four equipment barrels per stage, void interactables, drone vendors and drone
+services, plain barrels, portals, and the radar tower. Equipment shops remain removed. The equipment-barrel
+cap prevents LevelUpChoices' redirected Barrels-category budget from creating extreme equipment density.
 
 ## Support
 

@@ -8,13 +8,6 @@ using UnityEngine.Networking;
 
 namespace TeamTayne.LevelUpChoicesFixes;
 
-
-internal enum XpCurveMode
-{
-    Exponential,
-    Linear
-}
-
 internal static class ConfigState
 {
     private const string ServerSection = "Server";
@@ -32,9 +25,6 @@ internal static class ConfigState
     internal static ConfigEntry<int> GuaranteedQualityChoiceCount { get; private set; }
     internal static ConfigEntry<string> ItemBlacklist { get; private set; }
     internal static ConfigEntry<float> InteractableCreditMultiplier { get; private set; }
-    internal static ConfigEntry<XpCurveMode> XpCurve { get; private set; }
-    internal static ConfigEntry<float> StartingXp { get; private set; }
-    internal static ConfigEntry<float> ExponentialXpScaling { get; private set; }
 
     internal static bool QualityEnabled => Value(EnableQualityIntegration);
     internal static bool RemoveQualityInteractablesValue => Value(RemoveQualityInteractables);
@@ -56,7 +46,7 @@ internal static class ConfigState
         EnableQualityIntegration = config.Bind(ServerSection, "Enable Quality Integration", true,
             "Promote LevelUpChoices base items to Item Qualities variants after the original roll.");
         RemoveQualityInteractables = config.Bind(ServerSection, "Remove Quality Interactables", true,
-            "Remove Item Qualities chests and printers when LevelUpChoices removes item sources.");
+            "Remove Item Qualities item sources (quality chests, printers, the dropped-item barrel, cloaked chest, and equipment barrel) when LevelUpChoices removes item sources.");
         QualityChance = config.Bind(ServerSection, "Quality Chance", 4f,
             "Percent chance for a level-up item to receive a quality. Host value is authoritative.");
         UncommonQualityWeight = config.Bind(ServerSection, "Uncommon Quality Weight", 70f,
@@ -79,12 +69,6 @@ internal static class ConfigState
             "Comma-separated item names that are removed from every LevelUpChoices player pool.");
         InteractableCreditMultiplier = config.Bind(ServerSection, "Interactable Credit Multiplier", 1f,
             "Multiplier applied to the original interactable credit budget; 1 leaves it unchanged.");
-        XpCurve = config.Bind(ServerSection, "XP Curve", XpCurveMode.Exponential,
-            "Release 4 XP curve: Exponential or Linear.");
-        StartingXp = config.Bind(ServerSection, "Starting XP", 20f,
-            "XP required for the first custom level step.");
-        ExponentialXpScaling = config.Bind(ServerSection, "XP Scaling", 1.55f,
-            "Exponential multiplier, or linear additive rate when XP Curve is Linear.");
     }
 
     internal static void RegisterNetworkMessage()
@@ -114,9 +98,6 @@ internal static class ConfigState
         GuaranteedQualityChoiceCount.SettingChanged += OnServerSettingChanged;
         ItemBlacklist.SettingChanged += OnServerSettingChanged;
         InteractableCreditMultiplier.SettingChanged += OnServerSettingChanged;
-        XpCurve.SettingChanged += OnServerSettingChanged;
-        StartingXp.SettingChanged += OnServerSettingChanged;
-        ExponentialXpScaling.SettingChanged += OnServerSettingChanged;
     }
 
     private static void UnsubscribeServerEntries()
@@ -131,9 +112,6 @@ internal static class ConfigState
         GuaranteedQualityChoiceCount.SettingChanged -= OnServerSettingChanged;
         ItemBlacklist.SettingChanged -= OnServerSettingChanged;
         InteractableCreditMultiplier.SettingChanged -= OnServerSettingChanged;
-        XpCurve.SettingChanged -= OnServerSettingChanged;
-        StartingXp.SettingChanged -= OnServerSettingChanged;
-        ExponentialXpScaling.SettingChanged -= OnServerSettingChanged;
     }
 
     private static void OnServerSettingChanged(object sender, EventArgs _)
@@ -181,9 +159,6 @@ internal static class ConfigState
         private int _guaranteedQualityChoices;
         private string _blacklist;
         private float _creditMultiplier;
-        private int _xpCurve;
-        private float _startingXp;
-        private float _xpScaling;
 
         public SyncFixConfig() { }
 
@@ -200,9 +175,6 @@ internal static class ConfigState
             _guaranteedQualityChoices = GuaranteedQualityChoiceCount.Value;
             _blacklist = ItemBlacklist.Value ?? string.Empty;
             _creditMultiplier = InteractableCreditMultiplier.Value;
-            _xpCurve = (int)XpCurve.Value;
-            _startingXp = StartingXp.Value;
-            _xpScaling = ExponentialXpScaling.Value;
         }
 
         public void Serialize(NetworkWriter writer)
@@ -218,9 +190,6 @@ internal static class ConfigState
             writer.Write(_guaranteedQualityChoices);
             writer.Write(_blacklist ?? string.Empty);
             writer.Write(_creditMultiplier);
-            writer.Write(_xpCurve);
-            writer.Write(_startingXp);
-            writer.Write(_xpScaling);
         }
 
         public void Deserialize(NetworkReader reader)
@@ -236,9 +205,6 @@ internal static class ConfigState
             _guaranteedQualityChoices = reader.ReadInt32();
             _blacklist = reader.ReadString();
             _creditMultiplier = reader.ReadSingle();
-            _xpCurve = reader.ReadInt32();
-            _startingXp = reader.ReadSingle();
-            _xpScaling = reader.ReadSingle();
         }
 
         public void OnReceived()
@@ -265,9 +231,6 @@ internal static class ConfigState
                 "Guaranteed Quality Every N Levels" => _overrides._guaranteedQualityEvery,
                 "Guaranteed Quality Choice Count" => _overrides._guaranteedQualityChoices,
                 "Interactable Credit Multiplier" => _overrides._creditMultiplier,
-                "XP Curve" => (XpCurveMode)_overrides._xpCurve,
-                "Starting XP" => _overrides._startingXp,
-                "XP Scaling" => _overrides._xpScaling,
                 _ => entry.Value
             };
             return (T)value;

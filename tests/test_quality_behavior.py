@@ -27,8 +27,18 @@ def promote(base, chance, weights, variants, sample_chance, sample_tier, luck=0,
     return variants[eligible[-1][0]]
 
 
-def quality_batch_due(level, interval):
-    return interval > 0 and level > 0 and level % interval == 0
+def quality_batch_due(level, interval, mod_enabled=True, quality_enabled=True):
+    return mod_enabled and quality_enabled and interval > 0 and level > 0 and level % interval == 0
+
+
+def queue_batch(pending, level, interval, mod_enabled=True, quality_enabled=True, player="p1"):
+    """Mirror of QueueGuaranteedQualityBatch: disabled states drop pending batches."""
+    if not mod_enabled or not quality_enabled:
+        pending.clear()
+        return pending
+    if quality_batch_due(level, interval):
+        pending[player] = pending.get(player, 0) + 1
+    return pending
 
 
 def reroll(options, slot, replacement):
@@ -67,6 +77,24 @@ class QualityBehavior(unittest.TestCase):
             [5, 10, 15, 20])
         self.assertFalse(quality_batch_due(0, 5))
         self.assertFalse(quality_batch_due(5, 0))
+        self.assertFalse(quality_batch_due(5, 5, mod_enabled=False))
+        self.assertFalse(quality_batch_due(5, 5, quality_enabled=False))
+
+    def test_queued_batches_do_not_survive_a_disabled_mod(self):
+        pending = {}
+        for level in (5, 10):
+            queue_batch(pending, level, 5)
+        self.assertEqual(pending, {"p1": 2})
+
+        queue_batch(pending, 15, 5, mod_enabled=False)
+        self.assertEqual(pending, {})
+
+        queue_batch(pending, 16, 5, mod_enabled=False)
+        queue_batch(pending, 20, 5)
+        self.assertEqual(pending, {"p1": 1})
+
+        queue_batch(pending, 25, 5, quality_enabled=False)
+        self.assertEqual(pending, {})
 
     def test_default_relative_distribution(self):
         weights = [70, 20, 8, 2]
